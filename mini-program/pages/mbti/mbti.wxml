@@ -1,0 +1,80 @@
+<!--pages/mbti/mbti.wxml - FBTI 2.0 测试页 (V3)-->
+<view class="container">
+  <!-- 引导区 -->
+  <view class="header-section">
+    <text class="header-emoji">⚽</text>
+    <text class="header-title">FBTI 2.0</text>
+    <text class="header-subtitle">球迷人格测试</text>
+    <text class="header-desc">{{questions.length}}道题目，匹配你的专属球迷人格</text>
+  </view>
+
+  <!-- 进度条 -->
+  <view class="progress-section">
+    <view class="progress-bar">
+      <view class="progress-fill" style="width: {{progress}}%"></view>
+    </view>
+    <view class="progress-info">
+      <text class="progress-text">第 {{currentIndex + 1}} / {{questions.length}} 题</text>
+      <text class="progress-dim" wx:if="{{currentQ && !currentQ.isHidden && dimLabels[currentQ.dimension]}}">
+        {{currentQ.model}} · {{dimLabels[currentQ.dimension]}}
+      </text>
+    </view>
+  </view>
+
+  <!-- 题目卡片 -->
+  <view class="question-card" wx:if="{{currentQ}}" wx:key="questionIndex">
+    <!-- 隐藏题标记 -->
+    <view class="hidden-badge" wx:if="{{currentQ.isHidden}}">✨ 彩蛋题</view>
+
+    <text class="q-number">{{currentIndex + 1}}</text>
+
+    <view class="q-text">{{currentQ.question}}</view>
+
+    <!-- 3个选项 (V3: A/B/C) -->
+    <view class="options">
+      <view
+        class="option-btn {{selectedAnswer === 0 ? 'selected' : ''}}"
+        data-index="0"
+        bindtap="onSelectOption"
+      >
+        <text class="option-label option-label-A">A</text>
+        <text class="option-text">{{currentQ.options[0].text}}</text>
+      </view>
+      <view
+        class="option-btn {{selectedAnswer === 1 ? 'selected' : ''}}"
+        data-index="1"
+        bindtap="onSelectOption"
+      >
+        <text class="option-label option-label-B">B</text>
+        <text class="option-text">{{currentQ.options[1].text}}</text>
+      </view>
+      <view
+        class="option-btn {{selectedAnswer === 2 ? 'selected' : ''}}"
+        data-index="2"
+        bindtap="onSelectOption"
+      >
+        <text class="option-label option-label-C">C</text>
+        <text class="option-text">{{currentQ.options[2].text}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 完成提示 -->
+  <view class="finish-hint" wx:if="{{isFinished}}">
+    <text>🎉 全部完成！点击下方查看你的球迷人格</text>
+  </view>
+
+  <!-- 底部占位 -->
+  <view style="height: 160rpx;"></view>
+</view>
+
+<!-- 固定底部操作栏 -->
+<view class="bottom-bar" wx:if="{{!isFinished}}">
+  <button class="btn-secondary" bindtap="onPrevQuestion" disabled="{{currentIndex <= 0}}">上一题</button>
+  <button class="btn-primary" bindtap="onNextQuestion">
+    {{currentIndex >= questions.length - 1 ? '完成测试' : '下一题'}}
+  </button>
+</view>
+<view class="bottom-bar" wx:else>
+  <button class="btn-primary" style="flex:1;" bindtap="onViewResult">查看结果 🎯</button>
+</view>

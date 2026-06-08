@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "openapi": []
+  },
+  "timeout": 20,
+  "triggers": [
+    {
+      "name": "refreshCacheTimer",
+      "type": "timer",
+      "config": "*/15 * * * * * *"
+    }
+  ],
+  "cloudbase": {
+    "environments": [
+      {
+        "envId": "cloud1-d9ggl0zmj3ead091b"
+      }
+    ]
+  }
+}

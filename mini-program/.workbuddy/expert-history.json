@@ -1,0 +1,17 @@
+{
+  "version": 2,
+  "sessions": {
+    "975c0aab368143648ba7d09dc30c59e4": [
+      {
+        "expertId": "WeChatMiniProgramDeveloper",
+        "name": "小程达",
+        "profession": "微信小程序开发者",
+        "avatarUrl": "https://acc-1258344699.cos.accelerate.myqcloud.com/workbuddy/experts/avatars/02-Engineering/WeChatMiniProgramDeveloper/WeChatMiniProgramDeveloper.png",
+        "promptUrl": "https://acc-1258344699.cos.accelerate.myqcloud.com/workbuddy/experts/experts/02-Engineering/WeChatMiniProgramDeveloper/WeChatMiniProgramDeveloper_zh.md",
+        "usedAt": 1780667750091,
+        "industryId": "all"
+      }
+    ]
+  },
+  "lastUpdated": 1780672358816
+}

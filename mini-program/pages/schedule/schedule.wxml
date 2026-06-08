@@ -1,0 +1,237 @@
+<!-- pages/schedule/schedule.wxml - 赛程赛果页（双视图） -->
+<view class="container">
+  <!-- ========== 主Tab栏：每日赛程 / 总体赛程 ========== -->
+  <view class="main-tab-bar">
+    <view
+      class="main-tab-item {{currentMainTab === 'daily' ? 'active' : ''}}"
+      bindtap="onSwitchMainTab"
+      data-tab="daily">
+      每日赛程
+    </view>
+    <view
+      class="main-tab-item {{currentMainTab === 'overall' ? 'active' : ''}}"
+      bindtap="onSwitchMainTab"
+      data-tab="overall">
+      总体赛程
+    </view>
+  </view>
+
+  <!-- ==================== 视图1：每日赛程 ==================== -->
+  <block wx:if="{{currentMainTab === 'daily'}}">
+    <!-- 日期横向选择栏 -->
+    <scroll-view scroll-x enhanced show-scrollbar="{{false}}" class="date-scroll">
+      <view class="date-picker">
+        <view
+          class="date-btn {{selectedDateIndex === index ? 'active' : ''}}"
+          wx:for="{{dateList}}"
+          wx:key="fullDate"
+          bindtap="onSelectDate"
+          data-index="{{index}}">
+          <text class="btn-month">{{item.month}}</text>
+          <text class="btn-day">{{item.day}}</text>
+          <text class="btn-weekday">{{item.weekday}}</text>
+          <view wx:if="{{item.hasMatch}}" class="dot-badge"></view>
+        </view>
+      </view>
+    </scroll-view>
+
+    <!-- 加载状态 -->
+    <view class="loading-state" wx:if="{{loading && !refreshing}}">
+      <text class="loading-icon">⏳</text>
+      <text>加载赛程中...</text>
+    </view>
+
+    <!-- 当日比赛卡片列表 -->
+    <scroll-view scroll-y class="match-list" wx:if="{{!loading || refreshing}}">
+      <block wx:for="{{dailyMatches}}" wx:key="id">
+        <view class="match-card" bindtap="onMatchTap" data-match="{{item}}">
+          <!-- 第一行：时间(左) + 组别(右) -->
+          <view class="card-row card-top">
+            <view class="time-tag">
+              <text>{{item._displayTime || '待定'}}</text>
+            </view>
+            <view class="group-tag" wx:if="{{item.group}}">
+              <text>{{item._shortGroup}}</text>
+            </view>
+          </view>
+
+          <!-- 第二行：对阵主体 -->
+          <view class="card-row card-versus">
+            <!-- 主队 -->
+            <view class="team-block team-left" catchtap="onTeamTap" data-teamid="{{item.homeTeam.localId || item.homeTeam.id}}" wx:if="{{item.homeTeam.id || item.homeTeam.name}}">
+              <image class="team-crest" src="{{item.homeTeam.crest}}" mode="aspectFit" wx:if="{{item.homeTeam.crest}}"></image>
+              <view class="team-crest-placeholder" wx:else>
+                <text class="crest-letter">{{item.homeTeam.shortName || '?'}}</text>
+              </view>
+              <text class="team-name">{{item.homeTeam.nameCn || item.homeTeam.name}}</text>
+            </view>
+            <!-- 主队TBD -->
+            <view class="team-block team-left tbd-team" wx:else>
+              <view class="tbd-crest">
+                <text class="tbd-text">?</text>
+              </view>
+              <text class="team-name tbd-name">待定</text>
+            </view>
+
+            <!-- VS -->
+            <view class="vs-box">
+              <block wx:if="{{item.isScheduled || !item.hasScore}}">
+                <text class="vs-text">VS</text>
+              </block>
+              <block wx:else>
+                <view class="score-display">
+                  <text class="score-num">{{item.homeScoreDisplay}}</text>
+                  <text class="score-colon">:</text>
+                  <text class="score-num">{{item.awayScoreDisplay}}</text>
+                </view>
+              </block>
+            </view>
+
+            <!-- 客队 -->
+            <view class="team-block team-right" catchtap="onTeamTap" data-teamid="{{item.awayTeam.localId || item.awayTeam.id}}" wx:if="{{item.awayTeam.id || item.awayTeam.name}}">
+              <image class="team-crest" src="{{item.awayTeam.crest}}" mode="aspectFit" wx:if="{{item.awayTeam.crest}}"></image>
+              <view class="team-crest-placeholder" wx:else>
+                <text class="crest-letter">{{item.awayTeam.shortName || '?'}}</text>
+              </view>
+              <text class="team-name">{{item.awayTeam.nameCn || item.awayTeam.name}}</text>
+            </view>
+            <!-- 客队TBD -->
+            <view class="team-block team-right tbd-team" wx:else>
+              <view class="tbd-crest">
+                <text class="tbd-text">?</text>
+              </view>
+              <text class="team-name tbd-name">待定</text>
+            </view>
+          </view>
+
+          <!-- 第三行：状态(左) + 举办地(右) -->
+          <view class="card-row card-bottom">
+            <view class="status-tag {{item.isLive ? 'live' : (item.status === 'FINISHED' ? 'finished' : '')}}">
+              <text wx:if="{{item.isLive}}" class="status-dot"></text>
+              <text>{{item.statusText || '未开始'}}</text>
+              <text wx:if="{{item.minuteStr}}"> {{item.minuteStr}}</text>
+            </view>
+            <text class="venue-text"></text>
+          </view>
+        </view>
+      </block>
+
+      <!-- 空状态 -->
+      <view class="empty-state" wx:if="{{!loading && dailyMatches.length === 0}}">
+        <text class="empty-icon">📅</text>
+        <text>当天暂无比赛</text>
+        <text class="empty-tip">换个日期看看吧</text>
+      </view>
+    </scroll-view>
+  </block>
+
+  <!-- ==================== 视图2：总体赛程 ==================== -->
+  <block wx:if="{{currentMainTab === 'overall'}}">
+    <!-- 阶段二级Tab -->
+    <scroll-view scroll-x enhanced show-scrollbar="{{false}}" class="stage-scroll">
+      <view class="stage-tabs">
+        <view
+          class="stage-tab {{selectedStageKey === item.key ? 'active' : ''}}"
+          wx:for="{{stageTabs}}"
+          wx:key="key"
+          bindtap="onSwitchStage"
+          data-key="{{item.key}}">
+          {{item.label}}
+        </view>
+      </view>
+    </scroll-view>
+
+    <!-- 加载状态 -->
+    <view class="loading-state" wx:if="{{loading && !refreshing}}">
+      <text class="loading-icon">⏳</text>
+      <text>加载赛中...</text>
+    </view>
+
+    <!-- 阶段比赛列表 -->
+    <scroll-view scroll-y class="match-list" wx:if="{{!loading || refreshing}}">
+      <block wx:for="{{stageGroupedMatches}}" wx:key="date">
+        <!-- 日期分割线 -->
+        <view class="date-divider">
+          <view class="divider-line"></view>
+          <text class="divider-text">{{item.dateText}}</text>
+          <view class="divider-line"></view>
+        </view>
+
+        <block wx:for="{{item.matches}}" wx:for-item="match" wx:key="id">
+          <view class="match-card overall-card" bindtap="onMatchTap" data-match="{{match}}">
+            <!-- 第一行：时间(左) + (右留空) -->
+            <view class="card-row card-top">
+              <view class="time-tag">
+                <text>{{match._displayTime || '待定'}}</text>
+              </view>
+              <view></view>
+            </view>
+
+            <!-- 第二行：对阵主体 -->
+            <view class="card-row card-versus">
+              <!-- 主队 -->
+              <view class="team-block team-left" catchtap="onTeamTap" data-teamid="{{match.homeTeam.localId || match.homeTeam.id}}" wx:if="{{match.homeTeam.id || match.homeTeam.name}}">
+                <image class="team-crest" src="{{match.homeTeam.crest}}" mode="aspectFit" wx:if="{{match.homeTeam.crest}}"></image>
+                <view class="team-crest-placeholder" wx:else>
+                  <text class="crest-letter">{{match.homeTeam.shortName || '?'}}</text>
+                </view>
+                <text class="team-name">{{match.homeTeam.nameCn || match.homeTeam.name || 'TBD'}}</text>
+              </view>
+              <!-- 主队TBD -->
+              <view class="team-block team-left tbd-team" wx:else>
+                <view class="tbd-crest">
+                  <text class="tbd-text">?</text>
+                </view>
+                <text class="team-name tbd-name">待定</text>
+              </view>
+
+              <!-- VS -->
+              <view class="vs-box">
+                <block wx:if="{{match.isScheduled || !match.hasScore}}">
+                  <text class="vs-text">VS</text>
+                </block>
+                <block wx:else>
+                  <view class="score-display">
+                    <text class="score-num">{{match.homeScoreDisplay}}</text>
+                    <text class="score-colon">:</text>
+                    <text class="score-num">{{match.awayScoreDisplay}}</text>
+                  </view>
+                </block>
+              </view>
+
+              <!-- 客队 -->
+              <view class="team-block team-right" catchtap="onTeamTap" data-teamid="{{match.awayTeam.localId || match.awayTeam.id}}" wx:if="{{match.awayTeam.id || match.awayTeam.name}}">
+                <image class="team-crest" src="{{match.awayTeam.crest}}" mode="aspectFit" wx:if="{{match.awayTeam.crest}}"></image>
+                <view class="team-crest-placeholder" wx:else>
+                  <text class="crest-letter">{{match.awayTeam.shortName || '?'}}</text>
+                </view>
+                <text class="team-name">{{match.awayTeam.nameCn || match.awayTeam.name || 'TBD'}}</text>
+              </view>
+              <!-- 客队TBD -->
+              <view class="team-block team-right tbd-team" wx:else>
+                <view class="tbd-crest">
+                  <text class="tbd-text">?</text>
+                </view>
+                <text class="team-name tbd-name">待定</text>
+              </view>
+            </view>
+
+            <!-- 第三行：组别+轮次(左) + 举办地(右) -->
+            <view class="card-row card-bottom">
+              <view class="group-stage-tag">
+                <text>{{match._stageLabel}}</text>
+              </view>
+              <text class="venue-text"></text>
+            </view>
+          </view>
+        </block>
+      </block>
+
+      <!-- 空状态 -->
+      <view class="empty-state" wx:if="{{!loading && stageMatches.length === 0}}">
+        <text class="empty-icon">📋</text>
+        <text>暂无赛程数据</text>
+      </view>
+    </scroll-view>
+  </block>
+</view>

@@ -1,0 +1,182 @@
+/**
+ * app.wxss - 全局样式
+ * 主题色系: 深蓝底色 + 红金点缀 (世界杯氛围)
+ */
+
+/* ==================== CSS变量定义 ==================== */
+page {
+  --primary-color: #e94560;        /* 主色调 - 中国红 */
+  --secondary-color: #ffd700;      /* 辅助色 - 金色 */
+  --bg-primary: #1a1a2e;           /* 主背景 - 深蓝黑 */
+  --bg-secondary: #16213e;         /* 次背景 */
+  --bg-card: #0f3460;              /* 卡片背景 */
+  --text-primary: #ffffff;         /* 主文字 - 白 */
+  --text-secondary: #a8a8b3;       /* 次文字 - 灰 */
+  --text-muted: #6c6c7e;           /* 弱化文字 */
+  --border-color: rgba(255,255,255,0.1);
+  --success-color: #00d084;
+  --warning-color: #ffb800;
+  --danger-color: #ff4757;
+
+  /* 字体大小 */
+  --font-xs: 22rpx;
+  --font-sm: 24rpx;
+  --font-base: 28rpx;
+  --font-md: 30rpx;
+  --font-lg: 34rpx;
+  --font-xl: 40rpx;
+  --font-xxl: 48rpx;
+
+  /* 圆角 */
+  --radius-sm: 8rpx;
+  --radius-md: 16rpx;
+  --radius-lg: 24rpx;
+  --radius-round: 50%;
+
+  /* 阴影 */
+  --shadow-sm: 0 4rpx 12rpx rgba(0,0,0,0.15);
+  --shadow-md: 0 8rpx 24rpx rgba(0,0,0,0.2);
+}
+
+/* ==================== 全局基础样式 ==================== */
+page {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: var(--font-base);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  min-height: 100vh;
+}
+
+/* ==================== 容器组件 ==================== */
+.container {
+  padding: 24rpx;
+  padding-bottom: calc(env(safe-area-inset-bottom) + 120rpx);
+}
+
+/* ==================== 卡片样式 ==================== */
+.card {
+  background-color: var(--bg-card);
+  border-radius: var(--radius-lg);
+  padding: 28rpx;
+  margin-bottom: 24rpx;
+  box-shadow: var(--shadow-sm);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+
+.card-title {
+  font-size: var(--font-md);
+  font-weight: 600;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.card-title .icon {
+  font-size: 36rpx;
+}
+
+.card-more {
+  font-size: var(--font-xs);
+  color: var(--text-muted);
+}
+
+/* ==================== 文字工具类 ==================== */
+.text-primary { color: var(--primary-color); }
+.text-secondary { color: var(--secondary-color); }
+.text-muted { color: var(--text-muted); }
+
+.font-bold { font-weight: 600; }
+.font-lg { font-size: var(--font-lg); }
+.font-xl { font-size: var(--font-xl); }
+
+/* ==================== Flex布局工具类 ==================== */
+.flex {
+  display: flex;
+}
+.flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.flex-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+.flex-wrap {
+  flex-wrap: wrap;
+}
+
+/* ==================== 安全区域适配 ==================== */
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* ==================== 加载状态 ==================== */
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 60rpx 0;
+  color: var(--text-muted);
+  font-size: var(--font-sm);
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 80rpx 40rpx;
+  color: var(--text-muted);
+}
+.empty-state .empty-icon {
+  font-size: 96rpx;
+  margin-bottom: 20rpx;
+}
+.empty-state .empty-text {
+  font-size: var(--font-sm);
+}
+
+/* ==================== 分割线 ==================== */
+.divider {
+  height: 1rpx;
+  background-color: var(--border-color);
+  margin: 24rpx 0;
+}
+
+/* ==================== 标签/徽章 ==================== */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 4rpx 16rpx;
+  border-radius: 20rpx;
+  font-size: var(--font-xs);
+  background-color: rgba(233,69,96,0.15);
+  color: var(--primary-color);
+}
+
+.tag-gold {
+  background-color: rgba(255,215,0,0.15);
+  color: var(--secondary-color);
+}
+
+/* ==================== 动画 ==================== */
+.fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10rpx); }
+  to { opacity: 1; transform: translateY(0); }
+}

@@ -1,0 +1,265 @@
+<!--pages/index/index.wxml - 首页-->
+<view class="index-page">
+  <!-- ==================== 顶部欢迎区域 ==================== -->
+  <view class="header-section">
+    <view class="header-bg">
+      <text class="header-emoji">⚽</text>
+    </view>
+    <view class="header-content">
+      <view class="greeting-row">
+        <text class="greeting-text">{{greeting}}, 球迷</text>
+        <text class="date-text">{{currentDate}}</text>
+      </view>
+      <view class="header-subtitle">
+        <text>2026美加墨世界杯 · 装懂指南</text>
+      </view>
+
+      <!-- MBTI测试入口按钮 -->
+      <view class="mbti-entry" bindtap="onTapMBTI">
+        <text class="mbti-icon">🎯</text>
+        <view class="mbti-text">
+          <text class="mbti-title">测测你是哪种球迷?</text>
+          <text class="mbti-desc">15道趣味题, 发现你的球迷人格</text>
+        </view>
+        <text class="mbti-arrow">→</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- ==================== 实时比分 (进行中的比赛) ==================== -->
+  <view class="section live-section" wx:if="{{liveMatches.length > 0}}">
+    <view class="section-header">
+      <view class="section-title">
+        <text class="live-dot"></text>
+        <text class="title-text text-primary font-bold">实时比分</text>
+        <text class="live-label">LIVE</text>
+      </view>
+      <text class="update-time" bindtap="_refreshLiveScore">{{lastUpdateTime}} 更新</text>
+    </view>
+
+    <scroll-view class="live-matches-scroll" scroll-x="{{true}}" enhanced show-scrollbar="{{false}}">
+      <view class="live-match-list">
+        <view
+          class="live-match-card"
+          wx:for="{{liveMatches}}"
+          wx:key="id"
+          data-id="{{item.id}}"
+          bindtap="onTapLiveMatch"
+        >
+          <!-- 球队信息 -->
+          <view class="match-teams">
+            <view class="team home-team">
+              <text class="team-flag">{{item.homeTeam.crest}}</text>
+              <text class="team-name">{{item.homeTeam.name}}</text>
+            </view>
+            <view class="score-box">
+              <text class="score-text">
+                {{item.score.fullTime.home}} - {{item.score.fullTime.away}}
+              </text>
+              <text class="match-minute">{{item.minute}}'</text>
+            </view>
+            <view class="team away-team">
+              <text class="team-flag">{{item.awayTeam.crest}}</text>
+              <text class="team-name">{{item.awayTeam.name}}</text>
+            </view>
+          </view>
+          <!-- 比赛事件 -->
+          <view class="match-events" wx:if="{{item.events}}">
+            <text
+              class="event-item {{item.type === 'goal' ? 'event-goal' : 'event-yellow'}}"
+              wx:for="{{item.events}}"
+              wx:for-item="evt"
+              wx:key="index"
+            >
+              {{evt.minute}}' {{evt.player}}
+              <text wx:if="{{evt.assist}}">(助攻{{evt.assist}})</text>
+            </text>
+          </view>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- ==================== 今日赛程 ==================== -->
+  <view class="section matches-section">
+    <view class="section-header">
+      <view class="section-title">
+        <text class="title-icon">📅</text>
+        <text class="title-text font-bold">今日赛程</text>
+      </view>
+      <view class="header-actions">
+        <text class="more-btn" bindtap="onTapSchedule">全部赛程 →</text>
+        <text class="refresh-btn" bindtap="onRefreshMatches">🔄</text>
+      </view>
+    </view>
+
+    <!-- 加载状态 -->
+    <view class="loading-container" wx:if="{{isLoadingMatches}}">
+      <text>正在加载赛程...</text>
+    </view>
+
+    <!-- 赛程列表 -->
+    <view class="matches-list" wx:else>
+      <view
+        class="match-card card fade-in"
+        wx:for="{{todayMatches}}"
+        wx:key="id"
+        data-id="{{item.id}}"
+        bindtap="onTapMatch"
+      >
+        <view class="match-info-top">
+          <!-- 小组标识 -->
+          <text class="group-tag tag" wx:if="{{item.group}}">{{item.group}}组</text>
+          <text class="match-status {{item.status === 'SCHEDULED' ? 'status-upcoming' : item.status === 'FINISHED' ? 'status-finished' : ''}}">
+            {{item.status === 'SCHEDULED' ? '未开始' : item.status === 'FINISHED' ? '已结束' : item.status}}
+          </text>
+        </view>
+
+        <view class="match-body">
+          <view class="match-team-info">
+            <text class="match-team-flag">{{item.homeTeam.crest}}</text>
+            <text class="match-team-name">{{item.homeTeam.name}}</text>
+          </view>
+
+          <!-- VS 或 比分 -->
+          <view class="match-vs-area" wx:if="{{item.score && item.score.fullTime}}">
+            <text class="vs-score">
+              <text class="score-num {{item.score.fullTime.home > item.score.fullTime.away ? 'score-win' : ''}}">{{item.score.fullTime.home}}</text>
+              <text class="vs-sep">:</text>
+              <text class="score-num {{item.score.fullTime.away > item.score.fullTime.home ? 'score-win' : ''}}">{{item.score.fullTime.away}}</text>
+            </text>
+          </view>
+          <view class="match-vs-area" wx:else>
+            <text class="vs-text">VS</text>
+          </view>
+
+          <view class="match-team-info">
+            <text class="match-team-flag">{{item.awayTeam.crest}}</text>
+            <text class="match-team-name">{{item.awayTeam.name}}</text>
+          </view>
+        </view>
+
+        <!-- 比赛时间 -->
+        <view class="match-footer">
+          <text class="match-time">{{item.utcDate}}</text>
+          <text class="match-round" wx:if="{{item.matchday}}">第{{item.matchday}}轮</text>
+        </view>
+      </view>
+
+      <!-- 无数据提示 -->
+      <view class="empty-state" wx:if="{{!isLoadingMatches && todayMatches.length === 0 && liveMatches.length === 0}}">
+        <text class="empty-icon">📭</text>
+        <text class="empty-text">今天暂无比赛安排</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- ==================== 今日黑话 ==================== -->
+  <view class="section slang-section" wx:if="{{todaySlangs.length > 0}}">
+    <view class="section-header">
+      <view class="section-title">
+        <text class="title-icon">📖</text>
+        <text class="title-text font-bold">今日足球黑话</text>
+      </view>
+      <text class="more-btn" bindtap="">更多 →</text>
+    </view>
+
+    <scroll-view class="slang-scroll" scroll-x="{{true}}" enhanced show-scrollbar="{{false}}">
+      <view class="slang-list">
+        <view
+          class="slang-card"
+          wx:for="{{todaySlangs}}"
+          wx:key="id"
+          data-id="{{item.id}}"
+          bindtap="onTapSlang"
+        >
+          <view class="slang-word">{{item.word}}</view>
+          <view class="slang-meaning">{{item.meaning}}</view>
+          <view class="slang-tip">
+            <text class="tip-label">💡</text>
+            <text>{{item.tip}}</text>
+          </view>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- ==================== 推荐球员 ==================== -->
+  <view class="section players-section" wx:if="{{recommendPlayers.length > 0}}">
+    <view class="section-header">
+      <view class="section-title">
+        <text class="title-icon">⭐</text>
+        <text class="title-text font-bold">球星推荐</text>
+      </view>
+    </view>
+
+    <scroll-view class="players-scroll" scroll-x="{{true}}" enhanced show-scrollbar="{{false}}">
+      <view class="players-list">
+        <view
+          class="player-card"
+          wx:for="{{recommendPlayers}}"
+          wx:key="playerId"
+          data-id="{{item.playerId}}"
+          bindtap="onTapPlayer"
+        >
+          <view class="player-avatar">
+            <text class="avatar-placeholder">{{item.name[0]}}</text>
+          </view>
+          <text class="player-name">{{item.name}}</text>
+          <view class="player-meta">
+            <text class="player-team">{{item.teamFlag}} {{item.teamName}}</text>
+            <text class="player-position">{{item.position}}</text>
+          </view>
+          <text class="player-quote">{{item.quote}}</text>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- ==================== 最新资讯 ==================== -->
+  <view class="section news-section">
+    <view class="section-header">
+      <view class="section-title">
+        <text class="title-icon">📰</text>
+        <text class="title-text font-bold">最新资讯</text>
+      </view>
+      <text class="more-btn" bindtap="onTapNewsMore">查看全部 →</text>
+    </view>
+
+    <!-- 加载状态 -->
+    <view class="loading-container" wx:if="{{isLoadingNews}}">
+      <text>正在加载新闻...</text>
+    </view>
+
+    <!-- 新闻列表 -->
+    <view class="news-list" wx:else>
+      <view
+        class="news-item"
+        wx:for="{{latestNews}}"
+        wx:key="id"
+        data-id="{{item.id}}"
+        bindtap="onTapNews"
+      >
+        <view class="news-content">
+          <text class="news-category tag" wx:if="{{item.category}}">
+            {{item.category === 'preview' ? '前瞻' : item.category === 'team' ? '球队' : item.category === 'rule' ? '规则' : '分析'}}
+          </text>
+          <text class="news-title">{{item.title}}</text>
+          <text class="news-desc">{{item.description}}</text>
+          <view class="news-footer">
+            <text class="news-date">{{item.date}}</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 无数据提示 -->
+      <view class="empty-state" wx:if="{{!isLoadingNews && latestNews.length === 0}}">
+        <text class="empty-icon">📰</text>
+        <text class="empty-text">暂无新闻数据</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部间距 -->
+  <view style="height: 40rpx;"></view>
+</view>

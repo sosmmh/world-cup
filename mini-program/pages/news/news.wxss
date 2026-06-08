@@ -1,0 +1,7 @@
+/* pages/news/news.wxss - 新闻资讯 */
+.container {
+  padding: 40rpx;
+  text-align: center;
+  color: #999;
+  font-size: 28rpx;
+}

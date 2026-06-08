@@ -1,0 +1,259 @@
+/* pages/teams/teams.wxss - 球队百科样式 */
+
+/* ========== 搜索栏 ========== */
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin-bottom: 20rpx;
+}
+
+.search-input-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  background-color: rgba(255,255,255,0.08);
+  border-radius: 32rpx;
+  padding: 14rpx 24rpx;
+  border: 2rpx solid rgba(255,255,255,0.1);
+}
+
+.search-input-wrap:focus-within {
+  border-color: #e94560;
+  background-color: rgba(233,69,96,0.05);
+}
+
+.search-icon {
+  font-size: 28rpx;
+  margin-right: 12rpx;
+}
+
+.search-input {
+  flex: 1;
+  font-size: 26rpx;
+  color: #fff;
+  height: 40rpx;
+}
+
+.search-clear {
+  color: #6c6c7e;
+  font-size: 24rpx;
+  padding: 8rpx;
+}
+
+.view-toggle {
+  width: 72rpx;
+  height: 68rpx;
+  border-radius: 16rpx;
+  background-color: var(--bg-card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32rpx;
+  color: var(--text-secondary);
+}
+
+/* ========== 分组Tab ========== */
+.group-tabs {
+  white-space: nowrap;
+  padding-bottom: 20rpx;
+  margin-bottom: 12rpx;
+}
+
+.group-tab {
+  display: inline-block;
+  padding: 10rpx 28rpx;
+  margin-right: 12rpx;
+  border-radius: 24rpx;
+  font-size: 24rpx;
+  color: var(--text-secondary);
+  background-color: rgba(255,255,255,0.06);
+  transition: all 0.2s ease;
+}
+
+.group-tab.active {
+  background-color: #e94560;
+  color: #fff;
+  font-weight: 600;
+}
+
+/* ========== 结果提示 ========== */
+.result-hint {
+  font-size: 24rpx;
+  color: var(--text-muted);
+  margin-bottom: 16rpx;
+  text-align: center;
+}
+
+.result-hint .highlight {
+  color: #e94560;
+  font-weight: 600;
+  font-size: 28rpx;
+}
+
+/* ========== 区块标题 ========== */
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin: 28rpx 0 16rpx;
+  padding-left: 4rpx;
+}
+
+.group-badge {
+  background: linear-gradient(135deg, #e94560, #ff6b81);
+  color: #fff;
+  font-size: 26rpx;
+  font-weight: 700;
+  padding: 6rpx 22rpx;
+  border-radius: 8rpx;
+  letter-spacing: 4rpx;
+}
+
+.team-count {
+  font-size: 22rpx;
+  color: var(--text-muted);
+}
+
+/* ========== 网格模式 - 2列满宽布局 ========== */
+.team-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+
+.team-card-grid {
+  width: calc(50% - 6rpx);
+  box-sizing: border-box;
+  background-color: var(--bg-card);
+  border-radius: 20rpx;
+  padding: 28rpx 14rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.15s ease;
+}
+
+.team-card-grid.compact {
+  padding: 22rpx 14rpx;
+}
+
+.team-flag {
+  font-size: 72rpx;
+  margin-bottom: 12rpx;
+  line-height: 1;
+}
+
+.team-name {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 4rpx;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+}
+
+.team-name-en {
+  font-size: 22rpx;
+  color: var(--text-muted);
+  margin-bottom: 12rpx;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+}
+
+.team-tags-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6rpx;
+}
+
+.team-tag {
+  font-size: 20rpx;
+  color: #e94560;
+  background-color: rgba(233,69,96,0.12);
+  padding: 4rpx 14rpx;
+  border-radius: 12rpx;
+}
+
+/* ========== 列表模式 ========== */
+.team-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.team-card-list {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: var(--bg-card);
+  border-radius: 16rpx;
+  padding: 20rpx 20rpx;
+  box-shadow: var(--shadow-sm);
+}
+
+.team-left {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  flex: 1;
+  min-width: 0;
+}
+
+.team-flag-lg {
+  font-size: 48rpx;
+  flex-shrink: 0;
+}
+
+.team-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.team-name-lg {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.team-meta {
+  font-size: 22rpx;
+  color: var(--text-muted);
+  margin-top: 4rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.team-right {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  flex-shrink: 0;
+}
+
+.group-label-sm {
+  font-size: 20rpx;
+  color: var(--primary-color);
+  background-color: rgba(233,69,96,0.15);
+  padding: 4rpx 14rpx;
+  border-radius: 8rpx;
+  font-weight: 500;
+}
+
+.arrow {
+  font-size: 32rpx;
+  color: var(--text-muted);
+}

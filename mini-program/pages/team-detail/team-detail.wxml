@@ -1,0 +1,159 @@
+<!-- pages/team-detail/team-detail.wxml - 球队详情页 -->
+<view class="container" wx:if="{{team}}">
+  <!-- ===== 头部信息区 ===== -->
+  <view class="team-header">
+    <view class="header-bg"></view>
+    <view class="header-top">
+      <text class="team-flag-lg">{{team.flag}}</text>
+      <view class="header-info">
+        <text class="team-name">{{team.name}}</text>
+        <text class="team-name-en">{{team.nameEn}}</text>
+        <view class="meta-row">
+          <text class="meta-badge group-badge">{{team.group}}组</text>
+          <text class="meta-badge continent-badge">{{continent}}</text>
+          <text class="meta-badge nickname-badge">「{{team.nickname}}」</text>
+        </view>
+      </view>
+      <view
+        class="follow-btn {{isFollowed ? 'followed' : ''}}"
+        bindtap="onToggleFollow"
+      >
+        <text class="follow-icon">{{isFollowed ? '★' : '☆'}}</text>
+        <text class="follow-text">{{isFollowed ? '已关注' : '关注'}}</text>
+      </view>
+    </view>
+    <!-- 特色标签 -->
+    <view class="tags-row" wx:if="{{team.tags && team.tags.length > 0}}">
+      <text class="tag-item" wx:for="{{team.tags}}" wx:key="*this">#{{item}}</text>
+    </view>
+  </view>
+
+  <!-- ===== 战绩数据模块 ===== -->
+  <view class="stats-section">
+    <text class="section-label">战绩概览</text>
+    <view class="stats-grid">
+      <view class="stat-item">
+        <text class="stat-value">{{matchStats.played}}</text>
+        <text class="stat-key">已赛场次</text>
+      </view>
+      <view class="stat-item highlight-win">
+        <text class="stat-value">{{matchStats.win}}</text>
+        <text class="stat-key">胜</text>
+      </view>
+      <view class="stat-item highlight-draw">
+        <text class="stat-value">{{matchStats.draw}}</text>
+        <text class="stat-key">平</text>
+      </view>
+      <view class="stat-item highlight-loss">
+        <text class="stat-value">{{matchStats.loss}}</text>
+        <text class="stat-key">负</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- ===== 进球数据模块 ===== -->
+  <view class="stats-section">
+    <text class="section-label">攻防统计</text>
+    <view class="stats-grid goals-grid">
+      <view class="stat-item goal-for">
+        <text class="stat-value">{{goalStats.goalsFor}}</text>
+        <text class="stat-key">进球</text>
+      </view>
+      <view class="stat-item goal-against">
+        <text class="stat-value">{{goalStats.goalsAgainst}}</text>
+        <text class="stat-key">失球</text>
+      </view>
+      <view class="stat-item goal-diff">
+        <text class="stat-value {{goalStats.goalDiff > 0 ? 'pos' : (goalStats.goalDiff < 0 ? 'neg' : '')}}">{{goalStats.goalDiffText}}</text>
+        <text class="stat-key">净胜球</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- ===== 赛程模块 ===== -->
+  <view class="schedule-section">
+    <text class="section-label">球队赛程</text>
+    <!-- 加载中 -->
+    <view class="loading-state" wx:if="{{matchesLoading}}">
+      <text class="loading-icon">⏳</text>
+      <text>加载赛中...</text>
+    </view>
+    <!-- 有赛程数据 — 复用赛程页同款卡片样式 -->
+    <scroll-view scroll-y class="td-match-list" wx:if="{{!matchesLoading && scheduleList.length > 0}}">
+      <block wx:for="{{scheduleList}}" wx:key="id">
+        <!-- 日期分割线 -->
+        <view class="td-date-divider" wx:if="{{item._isDivider}}">
+          <view class="td-divider-line"></view>
+          <text class="td-divider-text">{{item._dateText}}</text>
+          <view class="td-divider-line"></view>
+        </view>
+
+        <!-- 比赛卡片 -->
+        <view class="td-match-card" wx:else>
+        <!-- 第一行：时间 + 阶段 -->
+        <view class="td-card-row td-card-top">
+          <view class="td-time-tag">
+            <text>{{item._displayTime}}</text>
+          </view>
+          <view class="td-stage-tag">
+            <text>{{item.stageLabel}}</text>
+          </view>
+        </view>
+
+        <!-- 第二行：对阵主体 -->
+        <view class="td-card-row td-card-versus">
+          <!-- 主队（我方） -->
+          <view class="td-team-block {{item.isHome ? 'my-side' : 'opp-side'}}">
+            <view class="td-flag-wrap">
+              <text class="td-flag-text">{{item.homeTeamFlagEmoji}}</text>
+            </view>
+            <text class="td-name">{{item.homeTeamName}}</text>
+          </view>
+
+          <!-- VS / 比分 -->
+          <view class="td-vs-box">
+            <block wx:if="{{!item.hasScore}}">
+              <text class="td-vs-text">VS</text>
+            </block>
+            <block wx:else>
+              <view class="td-score-display">
+                <text class="td-score-num">{{item.homeScoreDisplay}}</text>
+                <text class="td-score-colon">:</text>
+                <text class="td-score-num">{{item.awayScoreDisplay}}</text>
+              </view>
+            </block>
+          </view>
+
+          <!-- 客队（对手） -->
+          <view class="td-team-block {{!item.isHome ? 'my-side' : 'opp-side'}}">
+            <view class="td-flag-wrap">
+              <text class="td-flag-text">{{item.awayTeamFlagEmoji}}</text>
+            </view>
+            <text class="td-name">{{item.awayTeamName}}</text>
+          </view>
+        </view>
+
+        <!-- 第三行：状态 -->
+        <view class="td-card-row td-card-bottom">
+          <view class="td-status-tag {{item.isLive ? 'live' : (item.status === 'FINISHED' ? 'finished' : '')}}">
+            <text wx:if="{{item.isLive}}" class="td-dot"></text>
+            <text>{{item.statusText}}</text>
+          </view>
+        </view>
+        </view>
+      </block>
+    </scroll-view>
+    <!-- 无数据 -->
+    <view class="empty-state" wx:if="{{!matchesLoading && scheduleList.length === 0}}">
+      <text class="empty-icon">📅</text>
+      <text>暂无赛程数据</text>
+      <text class="empty-tip">比赛开始后这里会展示完整赛程和赛果</text>
+    </view>
+  </view>
+</view>
+
+<!-- 无球队时 -->
+<view class="container empty-page" wx:if="{{!team}}">
+  <text class="empty-icon-large">😕</text>
+  <text>球队信息不存在</text>
+</view>

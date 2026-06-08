@@ -1,0 +1,187 @@
+<!-- pages/profile/profile.wxml - 个人中心 -->
+<view class="profile-page">
+
+  <!-- ========== 用户信息头部 ========== -->
+  <view class="user-header">
+    <view class="user-avatar-wrap">
+      <open-type class="avatar-btn" bindgetuserinfo="onGetUserInfo">
+        <image
+          class="user-avatar"
+          src="{{userInfo ? userInfo.avatarUrl : '/images/default-avatar.png'}}"
+          mode="aspectFill"
+        />
+      </open-type>
+      <view class="vip-badge" wx:if="{{hasUserInfo}}">⚽</view>
+    </view>
+    <text class="user-nickname">{{userInfo ? userInfo.nickName : '球迷朋友'}}</text>
+    <text class="user-desc">世界杯装懂指南 · 第1季</text>
+  </view>
+
+  <!-- ========== 数据概览 ========== -->
+  <view class="stats-row">
+    <view class="stat-item">
+      <text class="stat-num text-secondary">{{favPlayersCount}}</text>
+      <text class="stat-label">收藏球员</text>
+    </view>
+    <view class="stat-divider"></view>
+    <view class="stat-item">
+      <text class="stat-num text-secondary">{{testHistoryCount}}</text>
+      <text class="stat-label">测试记录</text>
+    </view>
+    <view class="stat-divider"></view>
+    <view class="stat-item">
+      <text class="stat-num text-secondary">{{followedTeamsCount}}</text>
+      <text class="stat-label">关注球队</text>
+    </view>
+  </view>
+
+  <!-- ========== 收藏球员 ========== -->
+  <view class="section card">
+    <view class="section-header">
+      <view class="section-title">
+        <text class="section-icon">⭐</text>
+        <text>收藏球员</text>
+      </view>
+      <text class="section-count" wx:if="{{favPlayersCount > 0}}">{{favPlayersCount}}人</text>
+    </view>
+
+    <!-- 球员列表 -->
+    <view class="player-list" wx:if="{{!showFavEmpty}}">
+      <view
+        class="player-item"
+        wx:for="{{favPlayers}}"
+        wx:key="playerId"
+        data-playerid="{{item.playerId}}"
+        bindtap="onPlayerTap"
+      >
+        <view class="player-left">
+          <view class="player-avatar-sm">
+            <text class="player-flag">{{item.flag || '🏃'}}</text>
+          </view>
+          <view class="player-info">
+            <text class="player-name">{{item.name}}</text>
+            <text class="player-meta">{{item.position}} · {{item.teamName}}</text>
+          </view>
+        </view>
+        <view
+          class="btn-unfav"
+          data-player-id="{{item.playerId}}"
+          catchtap="onCancelFav"
+        >✕</view>
+      </view>
+    </view>
+
+    <!-- 空状态 -->
+    <view class="empty-state" wx:if="{{showFavEmpty}}">
+      <text class="empty-icon">📭</text>
+      <text class="empty-text">还没有收藏球员</text>
+      <text class="empty-hint">去球队详情页收藏你喜欢的球员吧</text>
+      <view class="btn-go" bindtap="goToTeams">浏览球队</view>
+    </view>
+  </view>
+
+  <!-- ========== 测试记录 ========== -->
+  <view class="section card">
+    <view class="section-header">
+      <view class="section-title">
+        <text class="section-icon">🧠</text>
+        <text>MBTI测试记录</text>
+      </view>
+      <view class="btn-retest" wx:if="{{testHistoryCount > 0}}" bindtap="onRetest">
+        <text>再测一次</text>
+      </view>
+    </view>
+
+    <!-- 最新结果卡片 -->
+    <view class="latest-result-card" wx:if="{{latestResult && !showTestEmpty}}">
+      <view class="latest-badge" style="background-color: {{latestResult.color || latestResult.resultColor || '#FFD700'}}20; border-color: {{latestResult.color || latestResult.resultColor || '#FFD700'}}40;">
+        <text class="badge-emoji">{{latestResult.emoji || '🏆'}}</text>
+        <text class="badge-text" style="color: {{latestResult.color || latestResult.resultColor || '#FFD700'}};">{{latestResult.code ? latestResult.code + ' ' + (latestResult.name || '') : (latestResult.resultType || '未知类型')}}</text>
+      </view>
+      <view class="latest-detail">
+        <text class="latest-score" wx:if="{{latestResult.similarity}}">匹配度 {{latestResult.similarity}}%</text>
+        <text class="latest-score" wx:elif="{{latestResult.percentage}}">指数 {{latestResult.percentage}}%</text>
+        <text class="latest-score" wx:else>得分 {{latestResult.score || 0}}/{{latestResult.maxScore || 45}}</text>
+        <text class="latest-time">{{latestResult.testTime || ''}}</text>
+      </view>
+      <view class="latest-quote" wx:if="{{latestResult.goldQuote}}">
+        <text>"{{latestResult.goldQuote}}"</text>
+      </view>
+      <view class="btn-view-detail" bindtap="onViewTestResult" data-index="0">
+        查看完整结果 →
+      </view>
+    </view>
+
+    <!-- 历史记录列表 -->
+    <view class="test-history-list" wx:if="{{testHistory.length > 1}}">
+      <view
+        class="test-history-item"
+        wx:for="{{testHistory}}"
+        wx:key="index"
+        wx:if="{{index > 0}}"
+        bindtap="onViewTestResult"
+        data-index="{{index}}"
+      >
+        <view class="th-dot" style="background-color: {{item.color || '#FFD700'}};"></view>
+        <view class="th-info">
+          <text class="th-type">{{item.code ? (item.code + ' ' + item.name) : (item.resultType || '测试结果')}}</text>
+          <text class="th-time">{{item.testTime || ''}}</text>
+        </view>
+        <text class="th-arrow">›</text>
+      </view>
+    </view>
+
+    <!-- 空状态 -->
+    <view class="empty-state" wx:if="{{showTestEmpty}}">
+      <text class="empty-icon">📝</text>
+      <text class="empty-text">还没有测试记录</text>
+      <text class="empty-hint">测测你是哪种类型的球迷吧</text>
+      <view class="btn-go" bindtap="onRetest">开始测试</view>
+    </view>
+  </view>
+
+  <!-- ========== 关注球队 ========== -->
+  <view class="section card">
+    <view class="section-header">
+      <view class="section-title">
+        <text class="section-icon">💚</text>
+        <text>我的关注</text>
+      </view>
+      <text class="section-count" wx:if="{{followedTeamsCount > 0}}">{{followedTeamsCount}}队</text>
+    </view>
+
+    <!-- 球队列表 -->
+    <view class="team-list" wx:if="{{!showFollowEmpty}}">
+      <view
+        class="team-item"
+        wx:for="{{followedTeams}}"
+        wx:key="id"
+        data-teamid="{{item.id}}"
+        bindtap="onTeamTap"
+      >
+        <text class="team-flag">{{item.flag}}</text>
+        <view class="team-info">
+          <text class="team-name">{{item.name}}</text>
+          <text class="team-group">{{item.group}}组 · {{item.nickname}}</text>
+        </view>
+        <view
+          class="btn-unfollow"
+          data-team-name="{{item.name}}"
+          catchtap="onUnfollowTeam"
+        >✕</view>
+      </view>
+    </view>
+
+    <!-- 空状态 -->
+    <view class="empty-state" wx:if="{{showFollowEmpty}}">
+      <text class="empty-icon">🏟️</text>
+      <text class="empty-text">还没有关注球队</text>
+      <text class="empty-hint">选择你支持的球队，获取最新动态</text>
+      <view class="btn-go" bindtap="goToTeams">浏览全部球队</view>
+    </view>
+  </view>
+
+  <!-- 底部占位 -->
+  <view class="bottom-spacer"></view>
+
+</view>

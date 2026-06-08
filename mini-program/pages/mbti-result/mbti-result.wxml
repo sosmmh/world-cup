@@ -1,0 +1,75 @@
+<!--pages/mbti-result/mbti-result.wxml - FBTI 2.0 结果页 (V3)-->
+<view class="container">
+  <!-- 结果卡片 -->
+  <view class="result-card" style="border-top-color: {{resultColor}};" wx:if="{{result}}">
+    <!-- 头部：代码 + 名称 -->
+    <view class="result-header">
+      <text class="result-emoji">{{result.emoji}}</text>
+      <view class="code-badge" style="background: {{resultColor}};">
+        <text class="code-text">{{result.code}}</text>
+      </view>
+      <text class="result-name" style="color: {{resultColor}};">{{result.name}}</text>
+      <text class="result-subtitle">{{result.subtitle}}</text>
+      <view class="badge-row">
+        <text class="result-badge" style="background: {{resultColor}}20; color: {{resultColor}};">{{result.badge}}</text>
+        <text class="hidden-tag" wx:if="{{result.isDrunk || result.isHidden}}" style="color: #E91E63;">✨ 隐藏彩蛋</text>
+        <text class="default-tag" wx:if="{{result.isDefault}}">兜底匹配</text>
+      </view>
+    </view>
+
+    <!-- 相似度 + 雷达图 -->
+    <view class="analysis-section">
+      <view class="similarity-block">
+        <text class="similarity-big">{{result.similarity}}</text>
+        <text class="similarity-symbol">%</text>
+        <text class="similarity-label">人格匹配度</text>
+      </view>
+
+      <!-- 雷达图 -->
+      <view class="radar-wrap" wx:if="{{radarReady}}">
+        <canvas
+          type="2d"
+          id="radarCanvas"
+          style="width: {{canvasWidth}}px; height: {{canvasHeight}}px;"
+        ></canvas>
+      </view>
+      <view class="radar-placeholder" wx:else>
+        <text>📊 人格维度分析</text>
+        <text class="placeholder-hint">正在生成你的球迷画像...</text>
+      </view>
+    </view>
+
+    <!-- 描述 -->
+    <text class="desc-text">{{result.description}}</text>
+
+    <!-- 特征列表 -->
+    <view class="features-section">
+      <text class="features-title" style="border-left-color: {{resultColor}};">人格特征</text>
+      <view class="feature-list">
+        <block wx:for="{{result.features}}" wx:key="index">
+          <view class="feature-item">
+            <text class="feature-bullet" style="color: {{resultColor}};">◆</text>
+            <text>{{item}}</text>
+          </view>
+        </block>
+      </view>
+    </view>
+
+    <!-- 装懂金句 -->
+    <view class="quote-card">
+      <text class="quote-icon">💬</text>
+      <text class="quote-label">经典语录</text>
+      <text class="quote-text">{{result.goldQuote}}</text>
+    </view>
+  </view>
+
+  <!-- 操作按钮 -->
+  <view class="action-buttons">
+    <button class="btn-share" bindtap="onShare" open-type="share">分享好友 📤</button>
+    <button class="btn-copy" bindtap="onCopyQuote">复制金句 📋</button>
+  </view>
+
+  <button class="btn-retest" bindtap="onRetest">再测一次 🔄</button>
+
+  <view class="safe-bottom"></view>
+</view>

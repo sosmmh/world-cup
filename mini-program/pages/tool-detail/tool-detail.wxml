@@ -1,0 +1,173 @@
+<!-- pages/tool-detail/tool-detail.wxml - 工具详情页 -->
+<view class="page-container">
+
+  <!-- ========== 黑话词典 ========== -->
+  <block wx:if="{{toolId === 'slang'}}">
+    <view class="item-card" wx:for="{{listData}}" wx:key="id">
+      <view class="card-header">
+        <text class="card-word">{{item.word}}</text>
+        <view class="card-badge">第{{item.id}}条</view>
+      </view>
+      <view class="card-body">
+        <view class="card-section">
+          <text class="section-label">释义</text>
+          <text class="section-text">{{item.meaning}}</text>
+        </view>
+        <view class="card-section" wx:if="{{item.scene}}">
+          <text class="section-label scene-label">📍 使用场景</text>
+          <text class="scene-text">{{item.scene}}</text>
+        </view>
+        <view class="card-tip" wx:if="{{item.tip}}">
+          <text class="tip-icon">💡</text>
+          <text class="tip-text">{{item.tip}}</text>
+        </view>
+      </view>
+    </view>
+  </block>
+
+  <!-- ========== 赛后万能话术 ========== -->
+  <block wx:if="{{toolId === 'quotes'}}">
+    <view class="quote-card" wx:for="{{listData}}" wx:key="id">
+      <view class="quote-header">
+        <view class="quote-category {{'cat-' + item.category}}">
+          <text wx:if="{{item.category === 'win'}}">✅ 赢了</text>
+          <text wx:elif="{{item.category === 'lose'}}">❌ 输了</text>
+          <text wx:elif="{{item.category === 'draw'}}">🤝 平局</text>
+          <text wx:else>💭 万能</text>
+        </view>
+        <text class="quote-title">{{item.title}}</text>
+      </view>
+      <view class="quote-content" bindtap="onCopyText" data-text="{{item.text}}">
+        <text class="quote-text">{{item.text}}</text>
+        <text class="copy-hint">点击复制 👆</text>
+      </view>
+      <view class="quote-footer">
+        <text class="usage-tag">📌 {{item.usage}}</text>
+      </view>
+    </view>
+  </block>
+
+  <!-- ========== 经典梗图 ========== -->
+  <block wx:if="{{toolId === 'meme'}}">
+    <view class="meme-card" wx:for="{{listData}}" wx:key="id">
+      <view class="meme-emoji">{{item.emoji}}</view>
+      <text class="meme-title">{{item.title}}</text>
+      <text class="meme-desc">{{item.desc}}</text>
+      <view class="meme-scene">
+        <text class="scene-tag">使用场景</text>
+        <text class="scene-value">{{item.scene}}</text>
+      </view>
+    </view>
+  </block>
+
+  <!-- ========== 球星绰号 ========== -->
+  <block wx:if="{{toolId === 'nicknames'}}">
+    <view class="nick-card" wx:for="{{listData}}" wx:key="id">
+      <view class="nick-top">
+        <view class="nick-avatar-wrap" style="background-color: {{config.bgColor || 'rgba(233,69,96,0.1)'}};">
+          <text class="nick-avatar-icon">⚽</text>
+        </view>
+        <view class="nick-info">
+          <text class="nick-name">{{item.name}}</text>
+          <text class="nick-team">{{item.team}}</text>
+        </view>
+      </view>
+      
+      <view class="nick-main">
+        <view class="nick-row">
+          <text class="nick-label">绰号</text>
+          <text class="nick-value highlight" style="color: {{config.color}};">{{item.nickname}}</text>
+        </view>
+        <view class="nick-row" wx:if="{{item.alias}}">
+          <text class="nick-label">别名</text>
+          <text class="nick-value">{{item.alias}}</text>
+        </view>
+      </view>
+
+      <view class="nick-origin">
+        <text class="origin-title">📖 绰号由来</text>
+        <text class="origin-text">{{item.origin}}</text>
+      </view>
+
+      <view class="nick-fun" wx:if="{{item.funFact}}">
+        <text class="fun-title">🎯 冷知识</text>
+        <text class="fun-text">{{item.funFact}}</text>
+      </view>
+    </view>
+  </block>
+
+  <!-- ========== 越位规则图解 ========== -->
+  <block wx:if="{{toolId === 'offside'}}">
+    <!-- 规则简介 -->
+    <view class="offside-intro" wx:if="{{extraData}}">
+      <view class="intro-header">
+        <text class="intro-title">{{extraData.title}}</text>
+      </view>
+      <view class="intro-summary">
+        <text class="intro-text">{{extraData.summary}}</text>
+        <view class="key-rule-box">
+          <text class="key-rule">{{extraData.keyRule}}</text>
+        </view>
+      </view>
+      <!-- 要点列表 -->
+      <view class="tips-list">
+        <view class="tip-item" wx:for="{{extraData.tips}}" wx:key="*this" wx:for-item="tip">
+          <text class="tip-bullet">•</text>
+          <text class="tip-content">{{tip}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 场景图解 -->
+    <view class="scene-card" wx:for="{{listData}}" wx:key="id">
+      <view class="scene-header">
+        <text class="scene-title">{{item.title}}</text>
+      </view>
+      <view class="scene-desc">{{item.desc}}</view>
+      <view class="scene-diagram">
+        <text class="diagram-text">{{item.diagram}}</text>
+      </view>
+      <view class="scene-explain">
+        <text class="explain-icon">{{item.id % 2 === 0 ? '✅' : '⚽'}}</text>
+        <text class="explain-text">{{item.explain}}</text>
+      </view>
+      <view class="scene-tip">
+        <text class="stip-icon">💡</text>
+        <text class="stip-text">{{item.tip}}</text>
+      </view>
+    </view>
+  </block>
+
+  <!-- ========== 球队恩怨录 ========== -->
+  <block wx:if="{{toolId === 'rivalry'}}">
+    <view class="rival-card" wx:for="{{listData}}" wx:key="id">
+      <!-- 头部：对阵双方 -->
+      <view class="rival-header">
+        <text class="rival-icon">{{item.icon}}</text>
+        <text class="rival-title">{{item.title}}</text>
+        <view class="level-stars">
+          <text class="star" wx:for="{{[1,2,3,4,5]}}" wx:key="*this" wx:for-item="s"
+                style="color: {{s <= item.level ? config.color : '#ddd'}};">★</text>
+        </view>
+      </view>
+
+      <view class="rival-desc">{{item.desc}}</view>
+
+      <!-- 高光时刻 -->
+      <view class="rival-highlights">
+        <text class="hl-title">⚡ 高光时刻</text>
+        <view class="hl-item" wx:for="{{item.highlights}}" wx:key="*this" wx:for-item="hl">
+          <text class="hl-bullet">▸</text>
+          <text class="hl-text">{{hl}}</text>
+        </view>
+      </view>
+
+      <!-- 趣闻 -->
+      <view class="rival-fun" wx:if="{{item.funFact}}">
+        <text class="rfun-icon">🎤</text>
+        <text class="rfun-text">{{item.funFact}}</text>
+      </view>
+    </view>
+  </block>
+
+</view>

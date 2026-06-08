@@ -1,0 +1,107 @@
+<!-- pages/teams/teams.wxml - 球队百科页 -->
+<view class="container">
+  <!-- 搜索栏 -->
+  <view class="search-bar">
+    <view class="search-input-wrap">
+      <text class="search-icon">🔍</text>
+      <input 
+        class="search-input" 
+        placeholder="搜索球队 / 球星 / 标签" 
+        value="{{searchKeyword}}"
+        bindinput="onSearchInput"
+        confirm-type="search"
+      />
+      <text class="search-clear" wx:if="{{searchKeyword}}" bindtap="onSearchClear">✕</text>
+    </view>
+    <view class="view-toggle" bindtap="toggleViewMode">
+      <text>{{viewMode === 'grid' ? '☷' : '▦'}}</text>
+    </view>
+  </view>
+
+  <!-- 分组Tab -->
+  <scroll-view scroll-x class="group-tabs" enhanced show-scrollbar="{{false}}">
+    <view 
+      class="group-tab {{selectedGroup === item.value ? 'active' : ''}}"
+      wx:for="{{groupTabs}}"
+      wx:key="value"
+      bindtap="onGroupTap"
+      data-group="{{item.value}}">
+      {{item.label}}
+    </view>
+  </scroll-view>
+
+  <!-- 搜索结果提示 -->
+  <view class="result-hint" wx:if="{{searchKeyword && filteredTeams.length > 0}}">
+    找到 <text class="highlight">{{filteredTeams.length}}</text> 支球队
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty-state" wx:if="{{filteredTeams.length === 0}}">
+    <text class="empty-icon">🔎</text>
+    <text class="empty-text">没有找到匹配的球队</text>
+    <text class="empty-tip">试试换个关键词</text>
+  </view>
+
+  <!-- ===== 网格模式 ===== -->
+  <block wx:if="{{filteredTeams.length > 0 && viewMode === 'grid'}}">
+    <block wx:for="{{groupedTeams}}" wx:key="group">
+      <!-- 组别标题 -->
+      <view class="section-header" wx:if="{{!selectedGroup || groupedTeams.length > 1}}">
+        <text class="group-badge">{{item.group}}组</text>
+        <text class="team-count">{{item.teams.length}}支球队</text>
+      </view>
+
+      <!-- 网格列表 -->
+      <view class="team-grid">
+        <view 
+          class="team-card-grid {{selectedGroup ? '' : 'compact'}}"
+          wx:for="{{item.teams}}" 
+          wx:for-item="team"
+          wx:key="id"
+          bindtap="onTeamTap"
+          data-id="{{team.id}}">
+          <text class="team-flag">{{team.flag}}</text>
+          <text class="team-name">{{team.name}}</text>
+          <text class="team-name-en">{{team.nameEn}}</text>
+          <view class="team-tags-row">
+            <text class="team-tag" wx:for="{{team.tags}}" wx:for-item="tag" wx:key="*this">{{tag}}</text>
+          </view>
+        </view>
+      </view>
+    </block>
+  </block>
+
+  <!-- ===== 列表模式 ===== -->
+  <block wx:if="{{filteredTeams.length > 0 && viewMode === 'list'}}">
+    <block wx:for="{{groupedTeams}}" wx:key="group">
+      <!-- 组别标题 -->
+      <view class="section-header" wx:if="{{!selectedGroup || groupedTeams.length > 1}}">
+        <text class="group-badge">{{item.group}}组</text>
+        <text class="team-count">{{item.teams.length}}支球队</text>
+      </view>
+
+      <!-- 列表 -->
+      <view class="team-list">
+        <view 
+          class="team-card-list"
+          wx:for="{{item.teams}}" 
+          wx:for-item="team"
+          wx:key="id"
+          bindtap="onTeamTap"
+          data-id="{{team.id}}">
+          <view class="team-left">
+            <text class="team-flag-lg">{{team.flag}}</text>
+            <view class="team-info">
+              <text class="team-name-lg">{{team.name}}</text>
+              <text class="team-meta">{{team.nickname}} · {{team.starPlayer}}</text>
+            </view>
+          </view>
+          <view class="team-right">
+            <text class="group-label-sm">{{team.group}}组</text>
+            <text class="arrow">›</text>
+          </view>
+        </view>
+      </view>
+    </block>
+  </block>
+</view>

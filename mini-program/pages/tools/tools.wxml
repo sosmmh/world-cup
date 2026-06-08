@@ -1,0 +1,29 @@
+<!-- pages/tools/tools.wxml - 速成工具箱 -->
+<view class="page-container">
+  <!-- 头部 -->
+  <view class="header">
+    <view class="header-title">⚽ 速成工具箱</view>
+    <view class="header-desc">6大神器，4年一届也能装作资深球迷</view>
+  </view>
+
+  <!-- 工具网格 -->
+  <view class="tool-grid">
+    <view
+      class="tool-card"
+      wx:for="{{toolList}}"
+      wx:key="id"
+      id="{{item.id}}"
+      data-id="{{item.id}}"
+      bindtap="onToolTap"
+    >
+      <!-- 图标区域 -->
+      <view class="tool-icon-wrap" style="background-color: {{item.bgColor}};">
+        <text class="tool-icon">{{item.icon}}</text>
+      </view>
+      
+      <!-- 文字区域 -->
+      <text class="tool-name">{{item.name}}</text>
+      <text class="tool-desc">{{item.desc}}</text>
+    </view>
+  </view>
+</view>

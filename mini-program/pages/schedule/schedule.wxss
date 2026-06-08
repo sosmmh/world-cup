@@ -1,0 +1,491 @@
+/* pages/schedule/schedule.wxss - 赛程赛果样式（双视图 · 世界杯暗色主题） */
+
+/* ========== 基础容器 ========== */
+.container {
+  min-height: 100vh;
+  background-color: var(--bg-primary);
+  display: flex;
+  flex-direction: column;
+  /* 覆盖全局 container 的 padding，赛程页面自己管理内边距 */
+  padding: 0 !important;
+}
+
+/* ========== 主Tab栏 ========== */
+.main-tab-bar {
+  display: flex;
+  background: var(--bg-secondary);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2rpx 16rpx rgba(0,0,0,0.3);
+}
+
+.main-tab-item {
+  flex: 1;
+  text-align: center;
+  padding: 26rpx 0;
+  font-size: 30rpx;
+  color: var(--text-secondary);
+  font-weight: 500;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.main-tab-item.active {
+  color: var(--primary-color);
+  font-weight: 700;
+}
+
+.main-tab-item.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80rpx;
+  height: 5rpx;
+  background: linear-gradient(90deg, var(--primary-color), #ff6b81);
+  border-radius: 3rpx;
+}
+
+/* ========== 日期选择栏（每日赛程视图）========== */
+.date-scroll {
+  background: var(--bg-secondary);
+  white-space: nowrap;
+  padding: 20rpx 16rpx 16rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.15);
+}
+
+.date-picker {
+  display: inline-flex;
+  gap: 14rpx;
+}
+
+.date-btn {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 96rpx;
+  height: 110rpx;
+  border-radius: 16rpx;
+  background: var(--bg-card);
+  transition: all 0.25s ease;
+  overflow: visible;
+  border: 2rpx solid transparent;
+}
+
+.date-btn.active {
+  background: linear-gradient(135deg, var(--primary-color), #ff6b81);
+  border-color: rgba(255,215,0,0.4);
+  box-shadow: 0 4rpx 20rpx rgba(233,69,96,0.4);
+}
+
+.date-btn .btn-month {
+  font-size: 22rpx;
+  color: var(--text-muted);
+  line-height: 1.2;
+}
+
+.date-btn .btn-day {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.3;
+  margin-top: 2rpx;
+}
+
+.date-btn .btn-weekday {
+  font-size: 20rpx;
+  color: var(--text-muted);
+  line-height: 1.2;
+  margin-top: 2rpx;
+}
+
+.date-btn.active .btn-month,
+.date-btn.active .btn-weekday {
+  color: rgba(255,255,255,0.85);
+}
+
+.date-btn.active .btn-day {
+  color: #fff;
+}
+
+/* 红点标记 */
+.dot-badge {
+  position: absolute;
+  top: 4rpx;
+  right: 4rpx;
+  width: 14rpx;
+  height: 14rpx;
+  background: var(--secondary-color);
+  border-radius: 50%;
+  border: 2rpx solid var(--bg-card);
+  box-shadow: 0 0 6rpx rgba(255,215,0,0.5);
+}
+
+/* ========== 阶段Tab栏（总体赛程视图）========== */
+.stage-scroll {
+  background: var(--bg-secondary);
+  padding: 18rpx 12rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.15);
+  white-space: nowrap;
+}
+
+.stage-tabs {
+  display: inline-flex;
+  gap: 12rpx;
+}
+
+.stage-tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14rpx 28rpx;
+  border-radius: 30rpx;
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font-size: 26rpx;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: all 0.25s ease;
+  border: 2rpx solid transparent;
+}
+
+.stage-tab.active {
+  background: linear-gradient(135deg, var(--primary-color), #ff6b81);
+  color: #fff;
+  border-color: rgba(255,215,0,0.3);
+  box-shadow: 0 3rpx 16rpx rgba(233,69,96,0.35);
+}
+
+/* ========== 加载状态 ========== */
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 120rpx 0;
+  color: var(--text-muted);
+  font-size: var(--font-base);
+}
+
+.loading-icon {
+  font-size: 48rpx;
+  margin-bottom: 16rpx;
+  animation: rotate 1s linear infinite;
+}
+
+@keyframes rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ========== 比赛列表容器 ========== */
+.match-list {
+  flex: 1;
+  height: calc(100vh - 200rpx);
+  width: 100%;
+  box-sizing: border-box;
+  padding: 20rpx 24rpx calc(20rpx + env(safe-area-inset-bottom));
+}
+
+/* ========== 比赛卡片（通用）========== */
+.match-card {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  padding: 28rpx 28rpx 24rpx;
+  margin-bottom: 20rpx;
+  box-shadow: var(--shadow-sm);
+  border: 1rpx solid rgba(255,255,255,0.06);
+}
+
+/* 卡片行布局 */
+.card-row {
+  display: flex;
+  align-items: center;
+}
+
+/* 第一行：顶部信息 */
+.card-top {
+  justify-content: space-between;
+  margin-bottom: 20rpx;
+}
+
+/* 时间标签 - 金色调 */
+.time-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 6rpx 18rpx;
+  background: linear-gradient(135deg, rgba(255,215,0,0.18), rgba(255,184,0,0.12));
+  border-radius: 10rpx;
+  font-size: var(--font-xs);
+  font-weight: 600;
+  color: var(--secondary-color);
+  border: 1rpx solid rgba(255,215,0,0.15);
+}
+
+/* 组别标签（每日视图用） */
+.group-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 6rpx 18rpx;
+  background: rgba(255,255,255,0.08);
+  border-radius: 10rpx;
+  font-size: var(--font-xs);
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+/* 日期文字（总览视图用） */
+.date-label {
+  font-size: var(--font-sm);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* 第二行：对阵主体 */
+.card-versus {
+  justify-content: space-between;
+  margin-bottom: 20rpx;
+  padding: 8rpx 0;
+}
+
+/* 队伍区块 - 垂直布局：队徽上 + 队名下 */
+.team-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+}
+
+.team-left {
+  align-items: flex-start;
+}
+
+.team-right {
+  align-items: flex-end;
+}
+
+/* 国旗/队徽 */
+.team-crest {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: rgba(255,255,255,0.08);
+  border: 2rpx solid rgba(255,255,255,0.1);
+}
+
+.team-crest-placeholder {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.04));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 2rpx solid rgba(255,255,255,0.08);
+}
+
+.crest-letter {
+  font-size: 20rpx;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+/* 队名 */
+.team-name {
+  font-size: 24rpx;
+  font-weight: 600;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 140rpx;
+  text-align: center;
+  margin-top: 8rpx;
+}
+
+/* TBD 待定队伍样式 */
+.tbd-team {
+  opacity: 0.7;
+}
+
+.tbd-crest {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.04);
+  border: 2rpx dashed rgba(255,255,255,0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tbd-text {
+  font-size: 24rpx;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.tbd-name {
+  color: var(--text-muted);
+  font-size: 22rpx;
+}
+
+/* VS 区域 - 中国红渐变 */
+.vs-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 90rpx;
+  padding: 10rpx 22rpx;
+  background: linear-gradient(135deg, var(--primary-color), #ff6b81);
+  border-radius: 14rpx;
+  box-shadow: 0 3rpx 12rpx rgba(233,69,96,0.35);
+}
+
+.vs-text {
+  font-size: 26rpx;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: 2rpx;
+}
+
+.score-display {
+  display: flex;
+  align-items: center;
+  gap: 6rpx;
+}
+
+.score-num {
+  font-size: 36rpx;
+  font-weight: 800;
+  color: #fff;
+}
+
+.score-colon {
+  font-size: 28rpx;
+  color: rgba(255,255,255,0.85);
+}
+
+/* 第三行：底部信息 */
+.card-bottom {
+  justify-content: space-between;
+}
+
+/* 状态标签 */
+.status-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 5rpx 16rpx;
+  border-radius: 8rpx;
+  font-size: var(--font-xs);
+  font-weight: 500;
+  background: rgba(255,255,255,0.07);
+  color: var(--text-muted);
+  border: 1rpx solid rgba(255,255,255,0.05);
+}
+
+.status-tag.live {
+  background: rgba(233,69,96,0.15);
+  color: var(--primary-color);
+  border-color: rgba(233,69,96,0.2);
+}
+
+.status-tag.finished {
+  background: rgba(255,255,255,0.04);
+  color: var(--text-muted);
+}
+
+.status-dot {
+  display: inline-block;
+  width: 10rpx;
+  height: 10rpx;
+  background: var(--primary-color);
+  border-radius: 50%;
+  margin-right: 8rpx;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+/* 举办地 */
+.venue-text {
+  font-size: var(--font-xs);
+  color: var(--text-muted);
+}
+
+/* 组别+轮次标签（总体视图用） - 蓝紫调 */
+.group-stage-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 5rpx 16rpx;
+  border-radius: 8rpx;
+  background: rgba(100,140,220,0.12);
+  color: #7b9de8;
+  font-size: var(--font-xs);
+  font-weight: 500;
+  border: 1rpx solid rgba(100,140,220,0.1);
+}
+
+/* ========== 总体赛程卡片微调 ========== */
+.overall-card {
+  border-left: 5rpx solid transparent;
+  transition: border-color 0.2s;
+}
+
+.overall-card:hover {
+  border-left-color: var(--primary-color);
+}
+
+/* ========== 日期分割线（总赛程视图）========== */
+.date-divider {
+  display: flex;
+  align-items: center;
+  padding: 28rpx 0 16rpx;
+  gap: 20rpx;
+}
+
+.divider-line {
+  flex: 1;
+  height: 1rpx;
+  background: linear-gradient(90deg, transparent, rgba(255,215,0,0.25), transparent);
+}
+
+.divider-text {
+  font-size: var(--font-xs);
+  color: var(--secondary-color);
+  font-weight: 600;
+  white-space: nowrap;
+  letter-spacing: 1rpx;
+}
+
+/* ========== 空状态 ========== */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 120rpx 0;
+  color: var(--text-muted);
+  font-size: var(--font-base);
+}
+
+.empty-icon {
+  font-size: 80rpx;
+  margin-bottom: 20rpx;
+  opacity: 0.6;
+}
+
+.empty-tip {
+  font-size: var(--font-xs);
+  color: var(--text-muted);
+  margin-top: 12rpx;
+  opacity: 0.6;
+}

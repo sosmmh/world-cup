@@ -1,0 +1,551 @@
+/* pages/tool-detail/tool-detail.wxss - 工具详情页样式 */
+
+page {
+  background-color: #f5f6fa;
+}
+
+.page-container {
+  min-height: 100vh;
+  padding: 20rpx;
+}
+
+/* ========== 通用卡片基础 ========== */
+.item-card,
+.quote-card,
+.meme-card,
+.nick-card,
+.scene-card,
+.rival-card {
+  background-color: #fff;
+  border-radius: 20rpx;
+  padding: 28rpx 24rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.05);
+}
+
+/* ========== 黑话词典 ========== */
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16rpx;
+  padding-bottom: 14rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.card-word {
+  font-size: 36rpx;
+  font-weight: 800;
+  color: #e94560;
+}
+
+.card-badge {
+  font-size: 20rpx;
+  color: #999;
+  background-color: #f5f5f5;
+  padding: 4rpx 16rpx;
+  border-radius: 16rpx;
+}
+
+.card-section {
+  margin-bottom: 12rpx;
+}
+
+.section-label {
+  font-size: 22rpx;
+  color: #e94560;
+  font-weight: 600;
+  display: block;
+  margin-bottom: 6rpx;
+}
+
+.scene-label {
+  color: #4ecdc4 !important;
+}
+
+.section-text {
+  font-size: 27rpx;
+  color: #333;
+  line-height: 1.7;
+  display: block;
+}
+
+.scene-text {
+  font-size: 24rpx;
+  color: #666;
+  line-height: 1.6;
+  display: block;
+  background-color: #f8fcfd;
+  padding: 12rpx 16rpx;
+  border-radius: 10rpx;
+  border-left: 4rpx solid #4ecdc4;
+}
+
+.card-tip {
+  display: flex;
+  align-items: flex-start;
+  gap: 8rpx;
+  margin-top: 14rpx;
+  padding: 12rpx 16rpx;
+  background-color: #fff8e6;
+  border-radius: 10rpx;
+  border-left: 4rpx solid #ff9f43;
+}
+
+.tip-icon { font-size: 26rpx; flex-shrink: 0; }
+.tip-text {
+  font-size: 24rpx;
+  color: #8b6914;
+  line-height: 1.5;
+}
+
+/* ========== 赛后万能话术 ========== */
+.quote-card {
+  overflow: hidden;
+}
+
+.quote-header {
+  display: flex;
+  align-items: center;
+  gap: 14rpx;
+  margin-bottom: 14rpx;
+}
+
+.quote-category {
+  font-size: 20rpx;
+  color: #fff;
+  padding: 4rpx 16rpx;
+  border-radius: 8rpx;
+  font-weight: 600;
+}
+.cat-win { background-color: #26de81; }
+.cat-lose { background-color: #eb3b5a; }
+.cat-draw { background-color: #4ecdc4; }
+.cat-neutral { background-color: #a55eea; }
+
+.quote-title {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: #1a1a2e;
+}
+
+.quote-content {
+  padding: 20rpx;
+  background-color: #fafafa;
+  border-radius: 12rpx;
+  position: relative;
+  margin-bottom: 12rpx;
+  border: 2rpx dashed #eee;
+}
+
+.quote-text {
+  font-size: 28rpx;
+  color: #333;
+  line-height: 1.75;
+  display: block;
+}
+
+.copy-hint {
+  display: block;
+  text-align: right;
+  font-size: 20rpx;
+  color: #ccc;
+  margin-top: 8rpx;
+}
+
+.quote-footer { text-align: left; }
+.usage-tag {
+  font-size: 22rpx;
+  color: #888;
+  background-color: #f5f5f5;
+  padding: 6rpx 14rpx;
+  border-radius: 8rpx;
+  display: inline-block;
+}
+
+/* ========== 经典梗图 ========== */
+.meme-card {
+  text-align: center;
+  padding: 32rpx 20rpx;
+}
+
+.meme-emoji {
+  font-size: 80rpx;
+  margin-bottom: 16rpx;
+  display: block;
+  line-height: 1;
+}
+
+.meme-title {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #1a1a2e;
+  display: block;
+  margin-bottom: 10rpx;
+}
+
+.meme-desc {
+  font-size: 26rpx;
+  color: #555;
+  line-height: 1.6;
+  display: block;
+  margin-bottom: 18rpx;
+}
+
+.meme-scene {
+  display: inline-flex;
+  align-items: center;
+  gap: 8rpx;
+  background-color: #fef6e8;
+  padding: 8rpx 20rpx;
+  border-radius: 20rpx;
+}
+
+.scene-tag {
+  font-size: 20rpx;
+  color: #d97706;
+  font-weight: 600;
+}
+.scene-value {
+  font-size: 22rpx;
+  color: #92400e;
+}
+
+/* ========== 球星绰号 ========== */
+.nick-card {
+  overflow: hidden;
+}
+
+.nick-top {
+  display: flex;
+  align-items: center;
+  gap: 18rpx;
+  margin-bottom: 20rpx;
+  padding-bottom: 18rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.nick-avatar-wrap {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.nick-avatar-icon {
+  font-size: 40rpx;
+}
+
+.nick-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+  min-width: 0;
+}
+
+.nick-name {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #1a1a2e;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nick-team {
+  font-size: 23rpx;
+  color: #888;
+}
+
+.nick-main {
+  margin-bottom: 16rpx;
+}
+
+.nick-row {
+  display: flex;
+  align-items: baseline;
+  gap: 12rpx;
+  margin-bottom: 8rpx;
+}
+
+.nick-label {
+  font-size: 23rpx;
+  color: #999;
+  width: 80rpx;
+  flex-shrink: 0;
+}
+
+.nick-value {
+  font-size: 27rpx;
+  color: #333;
+  font-weight: 600;
+}
+.nick-value.highlight {
+  font-size: 30rpx !important;
+}
+
+.nick-origin,
+.nick-fun {
+  padding: 14rpx 16rpx;
+  border-radius: 10rpx;
+  margin-bottom: 10rpx;
+}
+
+.nick-origin {
+  background-color: #f0f4ff;
+}
+
+.origin-title {
+  font-size: 23rpx;
+  color: #4a6cf7;
+  font-weight: 600;
+  display: block;
+  margin-bottom: 6rpx;
+}
+.origin-text {
+  font-size: 25rpx;
+  color: #444;
+  line-height: 1.65;
+  display: block;
+}
+
+.nick-fun {
+  background-color: #fff4ee;
+}
+
+.fun-title {
+  font-size: 23rpx;
+  color: #e85d04;
+  font-weight: 600;
+  display: block;
+  margin-bottom: 6rpx;
+}
+.fun-text {
+  font-size: 25rpx;
+  color: #555;
+  line-height: 1.6;
+  display: block;
+}
+
+/* ========== 越位规则图解 ========== */
+.offside-intro {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border-radius: 20rpx;
+  padding: 30rpx 24rpx;
+  margin-bottom: 20rpx;
+  color: #fff;
+}
+
+.intro-header { margin-bottom: 16rpx; }
+.intro-title {
+  font-size: 34rpx;
+  font-weight: 800;
+  display: block;
+}
+
+.intro-summary { margin-bottom: 18rpx; }
+.intro-text {
+  font-size: 25rpx;
+  color: #ccc;
+  display: block;
+  line-height: 1.6;
+  margin-bottom: 12rpx;
+}
+
+.key-rule-box {
+  background-color: rgba(255,255,255,0.1);
+  border-radius: 10rpx;
+  padding: 14rpx 16rpx;
+  border-left: 4rpx solid #26de81;
+}
+
+.key-rule {
+  font-size: 26rpx;
+  color: #26de81;
+  font-weight: 600;
+  line-height: 1.6;
+  display: block;
+}
+
+.tips-list { margin-top: 4rpx; }
+.tip-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8rpx;
+  margin-bottom: 6rpx;
+}
+.tip-bullet {
+  color: #26de81;
+  font-size: 24rpx;
+  flex-shrink: 0;
+  margin-top: 2rpx;
+}
+.tip-content {
+  font-size: 23rpx;
+  color: #aaa;
+  line-height: 1.5;
+}
+
+/* 场景卡片 */
+.scene-header { margin-bottom: 12rpx; }
+.scene-title {
+  font-size: 32rpx;
+  font-weight: 800;
+  color: #1a1a2e;
+  display: block;
+}
+
+.scene-desc {
+  font-size: 25rpx;
+  color: #666;
+  line-height: 1.6;
+  margin-bottom: 14rpx;
+  display: block;
+}
+
+.scene-diagram {
+  background-color: #1a1a2e;
+  border-radius: 12rpx;
+  padding: 20rpx 16rpx;
+  margin-bottom: 14rpx;
+}
+
+.diagram-text {
+  font-size: 22rpx;
+  color: #fff;
+  line-height: 1.7;
+  font-family: monospace, sans-serif;
+  white-space: pre-line;
+  display: block;
+}
+
+.scene-explain {
+  display: flex;
+  align-items: flex-start;
+  gap: 8rpx;
+  padding: 12rpx 14rpx;
+  background-color: #f0fdf4;
+  border-radius: 8rpx;
+  margin-bottom: 10rpx;
+  border-left: 4rpx solid #26de81;
+}
+
+.explain-icon { font-size: 28rpx; flex-shrink: 0; }
+.explain-text {
+  font-size: 25rpx;
+  color: #166534;
+  line-height: 1.5;
+  font-weight: 500;
+}
+
+.scene-tip {
+  display: flex;
+  align-items: flex-start;
+  gap: 8rpx;
+  padding: 10rpx 14rpx;
+  background-color: #fffbeb;
+  border-radius: 8rpx;
+  border-left: 4rpx solid #f59e0b;
+}
+
+.stip-icon { font-size: 24rpx; flex-shrink: 0; }
+.stip-text {
+  font-size: 23rpx;
+  color: #92400e;
+  line-height: 1.5;
+}
+
+/* ========== 球队恩怨录 ========== */
+.rival-card {
+  overflow: hidden;
+}
+
+.rival-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20rpx 0 16rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+  margin-bottom: 16rpx;
+}
+
+.rival-icon {
+  font-size: 48rpx;
+  display: block;
+  margin-bottom: 10rpx;
+}
+
+.rival-title {
+  font-size: 32rpx;
+  font-weight: 800;
+  color: #1a1a2e;
+  display: block;
+  margin-bottom: 8rpx;
+}
+
+.level-stars {
+  display: flex;
+  gap: 4rpx;
+}
+.star { font-size: 24rpx; }
+
+.rival-desc {
+  font-size: 26rpx;
+  color: #555;
+  line-height: 1.7;
+  display: block;
+  margin-bottom: 18rpx;
+}
+
+.rival-highlights {
+  background-color: #fafafa;
+  border-radius: 12rpx;
+  padding: 18rpx 16rpx;
+  margin-bottom: 14rpx;
+}
+
+.hl-title {
+  font-size: 25rpx;
+  font-weight: 700;
+  color: #e94560;
+  display: block;
+  margin-bottom: 12rpx;
+}
+
+.hl-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8rpx;
+  margin-bottom: 10rpx;
+}
+.hl-bullet {
+  color: #e94560;
+  font-size: 24rpx;
+  flex-shrink: 0;
+  margin-top: 2rpx;
+}
+.hl-text {
+  font-size: 24rpx;
+  color: #444;
+  line-height: 1.6;
+}
+
+.rival-fun {
+  display: flex;
+  align-items: flex-start;
+  gap: 10rpx;
+  padding: 14rpx 16rpx;
+  background: linear-gradient(135deg, #fff5f5 0%, #fff0ed 100%);
+  border-radius: 10rpx;
+  border-left: 4rpx solid #fd9644;
+}
+
+.rfun-icon { font-size: 28rpx; flex-shrink: 0; }
+.rfun-text {
+  font-size: 24rpx;
+  color: #c2410c;
+  line-height: 1.6;
+}
