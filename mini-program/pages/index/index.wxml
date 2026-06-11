@@ -26,6 +26,47 @@
     </view>
   </view>
 
+  <!-- ==================== 世界杯倒计时 / 状态横幅 ==================== -->
+  <!-- 赛前：倒计时 -->
+  <view class="countdown-banner {{wcStatus === 'upcoming' ? 'countdown-pre' : (wcStatus === 'live' ? 'countdown-live' : '')}}" wx:if="{{wcCountdown || wcStatus}}">
+    <view class="countdown-inner">
+      <view class="countdown-left">
+        <text class="countdown-emoji">🏆</text>
+        <view class="countdown-info">
+          <text class="countdown-title">2026美加墨世界杯</text>
+          <text class="countdown-subtitle">{{wcStatusText}}</text>
+        </view>
+      </view>
+      <!-- 倒计时数字（仅赛前显示） -->
+      <view class="countdown-numbers" wx:if="{{wcCountdown}}">
+        <view class="countdown-block" wx:if="{{wcCountdown.days > 0}}">
+          <text class="countdown-num">{{wcCountdown.days}}</text>
+          <text class="countdown-label">天</text>
+        </view>
+        <view class="countdown-sep" wx:if="{{wcCountdown.days > 0}}">:</view>
+        <view class="countdown-block">
+          <text class="countdown-num">{{wcCountdown.hours > 9 ? wcCountdown.hours : '0' + wcCountdown.hours}}</text>
+          <text class="countdown-label">时</text>
+        </view>
+        <view class="countdown-sep">:</view>
+        <view class="countdown-block">
+          <text class="countdown-num">{{wcCountdown.minutes > 9 ? wcCountdown.minutes : '0' + wcCountdown.minutes}}</text>
+          <text class="countdown-label">分</text>
+        </view>
+        <view class="countdown-sep">:</view>
+        <view class="countdown-block">
+          <text class="countdown-num">{{wcCountdown.seconds > 9 ? wcCountdown.seconds : '0' + wcCountdown.seconds}}</text>
+          <text class="countdown-label">秒</text>
+        </view>
+      </view>
+      <!-- 进行中标签 -->
+      <view class="live-badge" wx:elif="{{wcStatus === 'live'}}">
+        <text class="live-dot-sm"></text>
+        <text>比赛进行中</text>
+      </view>
+    </view>
+  </view>
+
   <!-- ==================== 实时比分 (进行中的比赛) ==================== -->
   <view class="section live-section" wx:if="{{liveMatches.length > 0}}">
     <view class="section-header">
@@ -49,18 +90,21 @@
           <!-- 球队信息 -->
           <view class="match-teams">
             <view class="team home-team">
-              <text class="team-flag">{{item.homeTeam.crest}}</text>
-              <text class="team-name">{{item.homeTeam.name}}</text>
+              <image class="team-crest" src="{{item.homeTeam.crest}}" mode="aspectFit"></image>
+              <text class="team-name">{{item.homeTeam.nameCn || item.homeTeam.name}}</text>
             </view>
             <view class="score-box">
-              <text class="score-text">
+              <text class="score-text" wx:if="{{item.score && item.score.fullTime && item.score.fullTime.home != null}}">
                 {{item.score.fullTime.home}} - {{item.score.fullTime.away}}
+              </text>
+              <text class="score-text" wx:else>
+                VS
               </text>
               <text class="match-minute">{{item.minute}}'</text>
             </view>
             <view class="team away-team">
-              <text class="team-flag">{{item.awayTeam.crest}}</text>
-              <text class="team-name">{{item.awayTeam.name}}</text>
+              <image class="team-crest" src="{{item.awayTeam.crest}}" mode="aspectFit"></image>
+              <text class="team-name">{{item.awayTeam.nameCn || item.awayTeam.name}}</text>
             </view>
           </view>
           <!-- 比赛事件 -->
@@ -72,7 +116,7 @@
               wx:key="index"
             >
               {{evt.minute}}' {{evt.player}}
-              <text wx:if="{{evt.assist}}">(助攻{{evt.assist}})</text>
+              <text wx:if="{{evt.attach}}">(助攻{{evt.attach}})</text>
             </text>
           </view>
         </view>
@@ -80,8 +124,38 @@
     </scroll-view>
   </view>
 
+  <!-- ==================== 热门对阵预览（无实时比赛时展示） ==================== -->
+  <view class="section featured-section" wx:if="{{liveMatches.length === 0 && todayMatches.length === 0 && !isLoadingMatches}}">
+    <view class="section-header">
+      <view class="section-title">
+        <text class="title-icon">🔥</text>
+        <text class="title-text font-bold">焦点对决前瞻</text>
+      </view>
+      <text class="more-btn" bindtap="onTapSchedule">完整赛程 →</text>
+    </view>
+
+    <scroll-view class="featured-scroll" scroll-x="{{true}}" enhanced show-scrollbar="{{false}}">
+      <view class="featured-list">
+        <view class="featured-card" wx:for="{{featuredMatchups}}" wx:key="tag" bindtap="onTapSchedule">
+          <text class="featured-tag">{{item.tag}}</text>
+          <view class="featured-versus">
+            <view class="featured-team">
+              <image class="featured-crest" src="{{item.homeCrest}}" mode="aspectFit"></image>
+              <text class="featured-name">{{item.home}}</text>
+            </view>
+            <text class="featured-vs">VS</text>
+            <view class="featured-team">
+              <image class="featured-crest" src="{{item.awayCrest}}" mode="aspectFit"></image>
+              <text class="featured-name">{{item.away}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+
   <!-- ==================== 今日赛程 ==================== -->
-  <view class="section matches-section">
+  <view class="section matches-section" wx:if="{{todayMatches.length > 0}}">
     <view class="section-header">
       <view class="section-title">
         <text class="title-icon">📅</text>
@@ -110,19 +184,19 @@
         <view class="match-info-top">
           <!-- 小组标识 -->
           <text class="group-tag tag" wx:if="{{item.group}}">{{item.group}}组</text>
-          <text class="match-status {{item.status === 'SCHEDULED' ? 'status-upcoming' : item.status === 'FINISHED' ? 'status-finished' : ''}}">
-            {{item.status === 'SCHEDULED' ? '未开始' : item.status === 'FINISHED' ? '已结束' : item.status}}
+          <text class="match-status {{item.status === 'FINISHED' ? 'status-finished' : item.status === 'LIVE' || item.status === 'IN_PLAY' ? 'status-live' : 'status-upcoming'}}">
+            {{item._statusText}}
           </text>
         </view>
 
         <view class="match-body">
           <view class="match-team-info">
-            <text class="match-team-flag">{{item.homeTeam.crest}}</text>
-            <text class="match-team-name">{{item.homeTeam.name}}</text>
+            <image class="match-team-crest" src="{{item.homeTeam.crest}}" mode="aspectFit"></image>
+            <text class="match-team-name">{{item.homeTeam.nameCn || item.homeTeam.name}}</text>
           </view>
 
           <!-- VS 或 比分 -->
-          <view class="match-vs-area" wx:if="{{item.score && item.score.fullTime}}">
+          <view class="match-vs-area" wx:if="{{item.score && item.score.fullTime && item.score.fullTime.home != null}}">
             <text class="vs-score">
               <text class="score-num {{item.score.fullTime.home > item.score.fullTime.away ? 'score-win' : ''}}">{{item.score.fullTime.home}}</text>
               <text class="vs-sep">:</text>
@@ -134,24 +208,56 @@
           </view>
 
           <view class="match-team-info">
-            <text class="match-team-flag">{{item.awayTeam.crest}}</text>
-            <text class="match-team-name">{{item.awayTeam.name}}</text>
+            <image class="match-team-crest" src="{{item.awayTeam.crest}}" mode="aspectFit"></image>
+            <text class="match-team-name">{{item.awayTeam.nameCn || item.awayTeam.name}}</text>
           </view>
         </view>
 
         <!-- 比赛时间 -->
         <view class="match-footer">
-          <text class="match-time">{{item.utcDate}}</text>
+          <text class="match-time">{{item._displayTime || '待定'}}</text>
           <text class="match-round" wx:if="{{item.matchday}}">第{{item.matchday}}轮</text>
         </view>
       </view>
+    </view>
+  </view>
 
-      <!-- 无数据提示 -->
-      <view class="empty-state" wx:if="{{!isLoadingMatches && todayMatches.length === 0 && liveMatches.length === 0}}">
-        <text class="empty-icon">📭</text>
-        <text class="empty-text">今天暂无比赛安排</text>
+  <!-- ==================== 无比赛时的精美空状态 ==================== -->
+  <view class="empty-matches-decorated" wx:if="{{!isLoadingMatches && todayMatches.length === 0 && liveMatches.length === 0}}">
+    <view class="empty-card">
+      <text class="empty-ball">⚽</text>
+      <text class="empty-main-text">{{wcStatus === 'upcoming' ? '世界杯尚未开战' : '今天没有比赛安排'}}</text>
+      <text class="empty-sub-text">{{wcStatus === 'upcoming' ? '先来看看焦点对决和48强球队吧 👇' : '看看新闻资讯或浏览球队百科'}}</text>
+      <view class="empty-actions">
+        <view class="empty-btn" bindtap="onTapSchedule">
+          <text>📋 浏览全部赛程</text>
+        </view>
+        <view class="empty-btn" bindtap="onTapMBTI">
+          <text>🎯 测试球迷人格</text>
+        </view>
       </view>
     </view>
+  </view>
+
+  <!-- ==================== 48强球队速览 ==================== -->
+  <view class="section teams-preview-section" wx:if="{{quickTeams.length > 0 && !isLoadingMatches}}">
+    <view class="section-header">
+      <view class="section-title">
+        <text class="title-icon">🌍</text>
+        <text class="title-text font-bold">48强球队速览</text>
+      </view>
+      <text class="more-btn" bindtap="onTapTeams">更多 →</text>
+    </view>
+
+    <scroll-view class="teams-preview-scroll" scroll-x="{{true}}" enhanced show-scrollbar="{{false}}">
+      <view class="teams-grid">
+        <view class="team-chip" wx:for="{{quickTeams}}" wx:key="name" bindtap="onTapQuickTeam" data-name="{{item.name}}">
+          <image class="team-chip-crest" src="{{item.crest}}" mode="aspectFit"></image>
+          <text class="team-chip-name">{{item.name}}</text>
+          <text class="team-chip-group">{{item.group}}组</text>
+        </view>
+      </view>
+    </scroll-view>
   </view>
 
   <!-- ==================== 今日黑话 ==================== -->
@@ -216,8 +322,8 @@
     </scroll-view>
   </view>
 
-  <!-- ==================== 最新资讯 ==================== -->
-  <view class="section news-section">
+  <!-- ==================== 最新资讯（暂时屏蔽） ==================== -->
+  <view class="section news-section" wx:if="{{false}}">
     <view class="section-header">
       <view class="section-title">
         <text class="title-icon">📰</text>
@@ -237,7 +343,8 @@
         class="news-item"
         wx:for="{{latestNews}}"
         wx:key="id"
-        data-id="{{item.id}}"
+        data-id="{{index}}"
+        data-url="{{item.url}}"
         bindtap="onTapNews"
       >
         <view class="news-content">

@@ -181,6 +181,7 @@ const mockService = {
 
   // 以下保持原始 mock 数据（新闻、球员、球队等非赛程类）
   async getHotNews(category = null, page = 1, pageSize = 10) {
+    console.log('========== [MOCK] getHotNews 被调用 ==========')
     const cacheKey = CACHE_PREFIX.NEWS + `${category || 'all'}_${page}`
     const cached = cacheManager.get(cacheKey, config.cache.news)
     if (cached) return { code: 0, data: cached }

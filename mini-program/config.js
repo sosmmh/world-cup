@@ -57,7 +57,7 @@ module.exports = {
     schedule: 15,
     liveScore: 1,
     standings: 10,
-    news: 10,
+    news: 30,
     teams: 1440
   },
 

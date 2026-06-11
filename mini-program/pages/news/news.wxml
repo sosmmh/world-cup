@@ -1,1 +1,38 @@
-<view class="container"><text>新闻资讯 - 敬请期待</text></view>
+<view class="news-page">
+  <view class="news-list" wx:if="{{newsList.length > 0}}">
+    <view
+      class="news-item"
+      wx:for="{{newsList}}"
+      wx:key="id"
+      data-url="{{item.url}}"
+      bindtap="onTapNews"
+    >
+      <image class="news-poster" wx:if="{{item.poster}}" src="{{item.poster}}" mode="aspectFill"></image>
+      <view class="news-content">
+        <text class="news-title">{{item.title}}</text>
+        <text class="news-desc">{{item.description}}</text>
+        <text class="news-time">{{item.time}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 加载中 -->
+  <view class="loading-tip" wx:if="{{loading && newsList.length === 0}}">
+    <text>加载中...</text>
+  </view>
+  <view class="loading-more" wx:else-if="{{loading && newsList.length > 0}}">
+    <text>加载更多...</text>
+  </view>
+
+  <!-- 无数据 -->
+  <view class="empty-state" wx:if="{{!loading && newsList.length === 0}}">
+    <text class="empty-icon">📰</text>
+    <text class="empty-text">暂无世界杯相关新闻</text>
+    <text class="empty-hint">世界杯临近时新闻会更丰富哦~</text>
+  </view>
+
+  <!-- 没有更多了 -->
+  <view class="no-more" wx:if="{{!loading && !hasMore && newsList.length > 0}}">
+    <text>— 已经到底啦 —</text>
+  </view>
+</view>

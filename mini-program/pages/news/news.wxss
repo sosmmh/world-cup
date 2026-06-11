@@ -1,7 +1,96 @@
-/* pages/news/news.wxss - 新闻资讯 */
-.container {
-  padding: 40rpx;
-  text-align: center;
-  color: #999;
+/* pages/news/news.wxss - 新闻列表页 */
+.news-page {
+  min-height: 100vh;
+  background: #0f0f23;
+  padding-bottom: 40rpx;
+}
+
+/* 新闻卡片 */
+.news-item {
+  display: flex;
+  flex-direction: row;
+  padding: 24rpx 30rpx;
+  margin: 16rpx 20rpx;
+  border-radius: 16rpx;
+  background: rgba(255,255,255,0.06);
+}
+.news-item:active {
+  background: rgba(255,255,255,0.12);
+}
+
+.news-poster {
+  width: 200rpx;
+  height: 150rpx;
+  border-radius: 10rpx;
+  flex-shrink: 0;
+  margin-right: 24rpx;
+  background: #1a1a3e;
+}
+
+.news-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.news-title {
   font-size: 28rpx;
+  color: #e8e8f0;
+  font-weight: 600;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+.news-desc {
+  font-size: 24rpx;
+  color: #8888aa;
+  margin-top: 10rpx;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+.news-time {
+  font-size: 22rpx;
+  color: #666688;
+  margin-top: auto;
+  padding-top: 10rpx;
+}
+
+/* 状态提示 */
+.loading-tip, .loading-more, .no-more {
+  text-align: center;
+  padding: 30rpx 0;
+  color: #6666aa;
+  font-size: 26rpx;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding-top: 200rpx;
+}
+
+.empty-icon {
+  font-size: 80rpx;
+  margin-bottom: 20rpx;
+}
+
+.empty-text {
+  font-size: 30rpx;
+  color: #8888bb;
+  margin-bottom: 12rpx;
+}
+
+.empty-hint {
+  font-size: 24rpx;
+  color: #555577;
 }

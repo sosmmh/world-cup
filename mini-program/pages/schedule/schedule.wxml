@@ -1,7 +1,7 @@
-<!-- pages/schedule/schedule.wxml - 赛程赛果页（双视图） -->
+<!-- pages/schedule/schedule.wxml - 赛程赛果页（三视图：每日赛程 / 总体赛程 / 积分榜） -->
 <view class="container">
-  <!-- ========== 主Tab栏：每日赛程 / 总体赛程 ========== -->
-  <view class="main-tab-bar">
+  <!-- ========== 主Tab栏：每日赛程 / 总体赛程 / 积分榜 ========== -->
+  <view class="main-tab-bar three-tabs">
     <view
       class="main-tab-item {{currentMainTab === 'daily' ? 'active' : ''}}"
       bindtap="onSwitchMainTab"
@@ -13,6 +13,12 @@
       bindtap="onSwitchMainTab"
       data-tab="overall">
       总体赛程
+    </view>
+    <view
+      class="main-tab-item {{currentMainTab === 'standings' ? 'active' : ''}}"
+      bindtap="onSwitchMainTab"
+      data-tab="standings">
+      积分榜
     </view>
   </view>
 
@@ -231,6 +237,89 @@
       <view class="empty-state" wx:if="{{!loading && stageMatches.length === 0}}">
         <text class="empty-icon">📋</text>
         <text>暂无赛程数据</text>
+      </view>
+    </scroll-view>
+  </block>
+
+  <!-- ==================== 视图3：积分榜 ==================== -->
+  <block wx:if="{{currentMainTab === 'standings'}}">
+    <!-- 加载状态 -->
+    <view class="loading-state" wx:if="{{standingsLoading}}">
+      <text class="loading-icon">⏳</text>
+      <text>加载积分榜中...</text>
+    </view>
+
+    <scroll-view scroll-y class="standings-container" wx:if="{{!standingsLoading}}">
+      <!-- 小组Tab切换（如果有分组数据） -->
+      <scroll-view scroll-x enhanced show-scrollbar="{{false}}" class="group-tab-scroll" wx:if="{{standingGroups.length > 1}}">
+        <view class="group-tabs">
+          <view
+            class="group-tab {{selectedGroupIndex === index ? 'active' : ''}}"
+            wx:for="{{standingGroups}}"
+            wx:key="group"
+            bindtap="onSwitchStandingGroup"
+            data-index="{{index}}">
+            {{item.groupLabel}}
+          </view>
+        </view>
+      </scroll-view>
+
+      <!-- 积分榜表格列表 -->
+      <view class="standings-list">
+        <block wx:for="{{displayedStandings}}" wx:key="group" wx:for-item="sg">
+          <!-- 分组标题 -->
+          <view class="sg-header" wx:if="{{standingGroups.length > 1}}">
+            <view class="sg-title-row">
+              <text class="sg-name">{{sg.groupLabel}}</text>
+              <text class="sg-count">{{sg.table.length}}支球队</text>
+            </view>
+          </view>
+
+          <!-- 表头 -->
+          <view class="st-table-head">
+            <text class="th rank-th">#</text>
+            <text class="th team-th">球队</text>
+            <text class="th num-th">场</text>
+            <text class="th num-th">胜</text>
+            <text class="th num-th">平</text>
+            <text class="th num-th">负</text>
+            <text class="th num-th">进/失</text>
+            <text class="th gd-th">净胜</text>
+            <text class="th pts-th">积分</text>
+          </view>
+
+          <!-- 球排行 -->
+          <view
+            class="st-row {{index < 2 ? 'top' : (index >= sg.table.length - 2 ? 'bottom' : '')}}"
+            wx:for="{{sg.table}}"
+            wx:for-item="team"
+            wx:key="position"
+            bindtap="onTeamTap"
+            data-teamid="{{team.localId || team.team.id}}">
+            <text class="td rank-td">{{item.position}}</text>
+            <view class="td team-td">
+              <image class="st-crest" src="{{team.team.crest}}" mode="aspectFit" wx:if="{{team.team.crest}}"></image>
+              <view class="st-crest-placeholder" wx:else>
+                <text class="st-crest-letter">{{team.team.shortName || team.team.nameCn && team.team.nameCn[0] || '?'}}</text>
+              </view>
+              <text class="st-team-name">{{team.team.nameCn || team.team.name}}</text>
+            </view>
+            <text class="td num-td">{{item.playedGames}}</text>
+            <text class="td num-td">{{item.won}}</text>
+            <text class="td num-td">{{item.drawn != null ? item.drawn : '-'}}</text>
+            <text class="td num-td">{{item.lost}}</text>
+            <text class="td num-td">{{item.goalsFor}}/{{item.goalsAgainst}}</text>
+            <text class="td gd-td {{item.goalDifference > 0 ? 'gd-pos' : (item.goalDifference < 0 ? 'gd-neg' : '')}}">{{item.goalDifference > 0 ? '+' : ''}}{{item.goalDifference}}</text>
+            <text class="td pts-td"><text class="pts-num">{{item.points}}</text></text>
+          </view>
+        </block>
+      </view>
+
+      <!-- 空状态 -->
+      <view class="empty-state" wx:if="{{!standingsLoading && displayedStandings.length === 0}}">
+        <text class="empty-icon">🏆</text>
+        <text>暂无积分榜数据</text>
+        <text class="empty-tip">比赛开始后将显示积分排名</text>
       </view>
     </scroll-view>
   </block>

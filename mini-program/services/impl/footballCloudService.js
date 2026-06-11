@@ -1,9 +1,9 @@
 // services/impl/footballCloudService.js - 云函数实现（含 fallback 到 mock）
-const cacheManager = require('../../utils/cache')
-const config = require('../../config')
-const mockImpl = require('./footballMockService')
+var cacheManager = require('../../utils/cache')
+var config = require('../../config')
+var mockImpl = require('./footballMockService')
 
-const CACHE_PREFIX = {
+var CACHE_PREFIX = {
   SCHEDULE: 'cache_schedule_',
   LIVE_SCORE: 'cache_live_score_',
   STANDINGS: 'cache_standings_',
@@ -16,18 +16,19 @@ const CACHE_PREFIX = {
 /**
  * 调用云函数（带超时控制）
  */
-function callCloudFunction(name, action, data = {}) {
-  return new Promise((resolve, reject) => {
+function callCloudFunction(name, action, data) {
+  data = data || {}
+  return new Promise(function(resolve, reject) {
     wx.cloud.callFunction({
-      name,
-      data: Object.assign({ action }, data),
+      name: name,
+      data: Object.assign({ action: action }, data),
       timeout: 20000,
-      success: res => {
-        const result = res.result || {}
+      success: function(res) {
+        var result = res.result || {}
         resolve({ code: result.code || 0, message: result.message || 'success', data: result.data })
       },
-      fail: err => {
-        console.error(`[CloudService] ${name}/${action} 调用失败:`, err)
+      fail: function(err) {
+        console.error('[CloudService] ' + name + '/' + action + ' 调用失败:', err)
         reject(new Error(err.errMsg || '云函数调用失败'))
       }
     })
@@ -39,7 +40,6 @@ function callCloudFunction(name, action, data = {}) {
  */
 function shouldFallbackToMock(res) {
   if (!res) return true
-  // 云函数返回了冷启动或空数据标记
   if (res.data && !res.data.cached && (
     res.message === 'cold_start' || 
     res.source === 'empty' ||
@@ -51,27 +51,26 @@ function shouldFallbackToMock(res) {
   return false
 }
 
-const cloudService = {
-  async getSchedule(params = {}) {
+var cloudService = {
+  async getSchedule(params) {
     try {
-      const res = await callCloudFunction('getCompSched', 'getSchedule', params)
+      var res = await callCloudFunction('getCompSched', 'getSchedule', params)
       if (!shouldFallbackToMock(res)) return res
     } catch(e) {
       console.warn('[CloudService] getSchedule 异常，fallback → mock:', e.message)
     }
-    // Fallback: 使用 mock 数据
     console.log('[CloudService] getSchedule 使用 mock 数据')
     return await mockImpl.getSchedule(params)
   },
 
-  async getTodayMatches(forceRefresh = false) {
-    const cacheKey = CACHE_PREFIX.SCHEDULE + 'today'
+  async getTodayMatches(forceRefresh) {
+    var cacheKey = CACHE_PREFIX.SCHEDULE + 'today'
     if (!forceRefresh) {
-      const cached = cacheManager.get(cacheKey, config.cache.schedule)
+      var cached = cacheManager.get(cacheKey, config.cache.schedule)
       if (cached) return { code: 0, data: cached }
     }
     try {
-      const res = await callCloudFunction('getCompSched', 'todayMatches')
+      var res = await callCloudFunction('getCompSched', 'todayMatches')
       if (!shouldFallbackToMock(res)) {
         if (res.code === 0) cacheManager.set(cacheKey, res.data, config.cache.schedule)
         return res
@@ -83,11 +82,11 @@ const cloudService = {
   },
 
   async getLiveScore() {
-    const cacheKey = CACHE_PREFIX.LIVE_SCORE
-    const cached = cacheManager.get(cacheKey, config.cache.liveScore)
+    var cacheKey = CACHE_PREFIX.LIVE_SCORE
+    var cached = cacheManager.get(cacheKey, config.cache.liveScore)
     if (cached) return { code: 0, data: cached }
     try {
-      const res = await callCloudFunction('getCompSched', 'liveScore')
+      var res = await callCloudFunction('getCompSched', 'liveScore')
       if (!shouldFallbackToMock(res)) {
         if (res.code === 0) cacheManager.set(cacheKey, res.data, config.cache.liveScore)
         return res
@@ -98,12 +97,13 @@ const cloudService = {
     return await mockImpl.getLiveScore()
   },
 
-  async getStandings(groupName = null) {
-    const cacheKey = CACHE_PREFIX.STANDINGS + (groupName || 'all')
-    const cached = cacheManager.get(cacheKey, config.cache.standings)
+  async getStandings(groupName) {
+    groupName = groupName || null
+    var cacheKey = CACHE_PREFIX.STANDINGS + (groupName || 'all')
+    var cached = cacheManager.get(cacheKey, config.cache.standings)
     if (cached) return { code: 0, data: cached }
     try {
-      const res = await callCloudFunction('getCompSched', 'standings', { group: groupName })
+      var res = await callCloudFunction('getCompSched', 'standings', { group: groupName })
       if (!shouldFallbackToMock(res)) {
         if (res.code === 0) cacheManager.set(cacheKey, res.data, config.cache.standings)
         return res
@@ -114,12 +114,14 @@ const cloudService = {
     return await mockImpl.getStandings(groupName)
   },
 
-  async getScorers(leagueId = null, season = null) {
-    const cacheKey = CACHE_PREFIX.SCORERS + `${leagueId || 'wc'}_${season || '2026'}`
-    const cached = cacheManager.get(cacheKey, config.cache.standings || 30)
+  async getScorers(leagueId, season) {
+    leagueId = leagueId || null
+    season = season || null
+    var cacheKey = CACHE_PREFIX.SCORERS + (leagueId || 'wc') + '_' + (season || '2026')
+    var cached = cacheManager.get(cacheKey, config.cache.standings || 30)
     if (cached) return { code: 0, data: cached }
     try {
-      const res = await callCloudFunction('getCompSched', 'scorers', { leagueId, season })
+      var res = await callCloudFunction('getCompSched', 'scorers', { leagueId: leagueId, season: season })
       if (!shouldFallbackToMock(res)) {
         if (res.code === 0) cacheManager.set(cacheKey, res.data, config.cache.standings || 30)
         return res
@@ -130,34 +132,60 @@ const cloudService = {
     return await mockImpl.getScorers(leagueId, season)
   },
 
-  async getHotNews(category = null, page = 1, pageSize = 10) {
-    // news 不走云函数，直接 mock
-    return await mockImpl.getHotNews(category, page, pageSize)
+  async getHotNews(category, page, pageSize, forceRefresh) {
+    console.log('========== [CLOUD] getHotNews 被调用 ==========')
+    category = category || null
+    page = page || 1
+    pageSize = pageSize || 10
+    forceRefresh = forceRefresh || false
+    var cacheKey = CACHE_PREFIX.NEWS + 'v2_' + (category || 'all') + '_' + page
+    // 先查本地缓存
+    if (!forceRefresh) {
+      var cached = cacheManager.get(cacheKey, config.cache.news)
+      if (cached) {
+        console.log('[CloudService] getHotNews 命中本地缓存, key=' + cacheKey + ' 条数:' + cached.length)
+        return { code: 0, data: cached }
+      }
+    }
+    // 强制跳过本地缓存时，通知云函数也刷新
+    console.log('[CloudService] getHotNews 调用云函数 getNews (forceRefresh=' + forceRefresh + ')...')
+    try {
+      var res = await callCloudFunction('getNews', forceRefresh ? 'forceRefresh' : 'getHotNews', { category: category, page: page, pageSize: pageSize })
+      console.log('[CloudService] getHotNews 云函数返回:', JSON.stringify(res).substring(0, 300))
+      if (res.code === 0 && res.data) {
+        cacheManager.set(cacheKey, res.data, config.cache.news)
+      }
+      return res
+    } catch(e) {
+      console.error('[CloudService] getHotNews 异常:', e.message)
+      return { code: -1, message: '获取新闻失败: ' + e.message, data: [] }
+    }
   },
 
   async getPlayerInfo(playerId) {
-    const cacheKey = CACHE_PREFIX.PLAYER_INFO + playerId
-    const cached = cacheManager.get(cacheKey, config.cache.schedule)
+    var cacheKey = CACHE_PREFIX.PLAYER_INFO + playerId
+    var cached = cacheManager.get(cacheKey, config.cache.schedule)
     if (cached) return { code: 0, data: cached }
     return await mockImpl.getPlayerInfo(playerId)
   },
 
   async getTeamRealtimeData(teamId) {
-    const cacheKey = CACHE_PREFIX.TEAM_INFO + teamId
-    const cached = cacheManager.get(cacheKey, config.cache.teams)
+    var cacheKey = CACHE_PREFIX.TEAM_INFO + teamId
+    var cached = cacheManager.get(cacheKey, config.cache.teams)
     if (cached) return { code: 0, data: cached }
     return await mockImpl.getTeamRealtimeData(teamId)
   },
 
-  async getRecommendPlayers(count = 10) {
-    const cacheKey = CACHE_PREFIX.PLAYER_INFO + 'recommend'
-    const cached = cacheManager.get(cacheKey, config.cache.teams)
+  async getRecommendPlayers(count) {
+    count = count || 10
+    var cacheKey = CACHE_PREFIX.PLAYER_INFO + 'recommend'
+    var cached = cacheManager.get(cacheKey, config.cache.teams)
     if (cached) return { code: 0, data: cached }
     return await mockImpl.getRecommendPlayers(count)
   },
 
   clearCache(type) {
-    const prefixMap = {
+    var prefixMap = {
       schedule: CACHE_PREFIX.SCHEDULE,
       liveScore: CACHE_PREFIX.LIVE_SCORE,
       standings: CACHE_PREFIX.STANDINGS,
@@ -166,7 +194,7 @@ const cloudService = {
       playerInfo: CACHE_PREFIX.PLAYER_INFO,
       teamInfo: CACHE_PREFIX.TEAM_INFO
     }
-    const prefix = prefixMap[type]
+    var prefix = prefixMap[type]
     if (prefix) cacheManager.clearByPrefix(prefix)
   }
 }

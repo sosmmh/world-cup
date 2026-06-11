@@ -16,6 +16,17 @@ App({
       })
     }
 
+    // 清除旧版新闻缓存（关键词优化后旧数据失效）
+    try {
+      var keys = wx.getStorageInfoSync().keys || []
+      for (var i = 0; i < keys.length; i++) {
+        if (keys[i].indexOf('cache_news') >= 0) {
+          wx.removeStorageSync(keys[i])
+          console.log('[App] 已清除旧新闻缓存:', keys[i])
+        }
+      }
+    } catch(e) {}
+
     console.log('[App] 世界杯装懂指南启动')
   }
 })

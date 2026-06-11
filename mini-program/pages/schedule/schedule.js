@@ -1,6 +1,7 @@
-// pages/schedule/schedule.js - 赛程赛果页（双视图：每日赛程 / 总体赛程）
+// pages/schedule/schedule.js - 赛程赛果页（三视图：每日赛程 / 总体赛程 / 积分榜）
 const footballService = require('../../services/footballService')
 const teamNameMap = require('../../utils/teamNameMap')
+const crestMap = require('../../utils/crestMap')
 const app = getApp()
 
 // 世界杯日期范围
@@ -87,12 +88,19 @@ Page({
 
     // 积分榜（保留用于后续扩展）
     standings: [],
-    worldCupGroups: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L']
+    worldCupGroups: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'],
+
+    // ========== 积分榜视图 ==========
+    standingsLoading: false,
+    standingGroups: [],          // 分组Tab数据 [{group, groupLabel}]
+    selectedGroupIndex: 0,       // 当前选中的分组索引
+    displayedStandings: []         // 当前展示的积分榜数组（过滤后）
   },
 
   onLoad() {
     this.initDateList()
     this.loadAllSchedule()
+    this.loadStandings()  // 加载积分榜
   },
 
   onShow() {
@@ -389,6 +397,11 @@ Page({
     this.setData({ currentMainTab: tab })
     if (tab === 'overall') {
       this.refreshOverallView()
+    } else if (tab === 'standings') {
+      // 切换到积分榜时确保数据已加载
+      if (!this.data.displayedStandings || this.data.displayedStandings.length === 0) {
+        this.loadStandings()
+      }
     } else {
       this.refreshDailyView()
     }
@@ -508,6 +521,94 @@ Page({
     if (this.data.liveTimer) {
       clearInterval(this.data.liveTimer)
       this.data.liveTimer = null
+    }
+  },
+
+  /* ==================== 积分榜 ==================== */
+
+  /**
+   * 加载积分榜数据
+   */
+  async loadStandings() {
+    if (this.data.standingsLoading) return
+    this.setData({ standingsLoading: true })
+
+    try {
+      var res = await footballService.getStandings()
+      console.log('[Schedule] 积分榜返回 code:', res.code, '组数:', (res.data && res.data.standings) ? res.data.standings.length : 0)
+
+      if (res.code === 0 && res.data && res.data.standings) {
+        // 用 teamNameMap 补充中文队名 + 队徽本地化
+        var enriched = teamNameMap.enrichStandings(res.data.standings)
+
+        // 队徽URL转本地路径（映射不到时保留原始URL）
+        enriched.forEach(function(sg) {
+          if (sg.table) {
+            sg.table.forEach(function(row) {
+              if (row.team && row.team.crest) {
+                var localCrest = crestMap.getLocalCrestUrl(row.team.crest)
+                row.team.crest = localCrest || row.team.crest  // 映射不到则保留原始URL
+              }
+            })
+          }
+        })
+
+        // 构建分组Tab（去重：同名分组只保留第一个）
+        var groups = []
+        var seenGroupNames = {}
+        if (enriched.length > 0) {
+          groups = enriched.filter(function(sg, i) {
+            var rawLabel = sg.group || 'ALL'
+            if (seenGroupNames[rawLabel]) return false  // 去重
+            seenGroupNames[rawLabel] = true
+            return true
+          }).map(function(sg, i) {
+            var label = sg.group || '总排名'
+            if (label === 'ALL') label = '总排名'
+            else if (label.startsWith('GROUP_')) label = label.replace('GROUP_', '') + '组'
+            return { group: sg.group, groupLabel: label }
+          })
+        }
+
+        // 同步过滤 enriched 数据（只保留去重后的分组）
+        var uniqueGroups = []
+        var seenAgain = {}
+        enriched.forEach(function(sg) {
+          var key = sg.group || 'ALL'
+          if (!seenAgain[key]) {
+            seenAgain[key] = true
+            uniqueGroups.push(sg)
+          }
+        })
+
+        this.setData({
+          standings: uniqueGroups,
+          standingGroups: groups,
+          selectedGroupIndex: 0,
+          displayedStandings: uniqueGroups.length > 0 ? [uniqueGroups[0]] : [],
+          standingsLoading: false
+        })
+      } else {
+        this.setData({ standingsLoading: false })
+      }
+    } catch (error) {
+      console.error('[Schedule] 加载积分榜失败:', error)
+      this.setData({ standingsLoading: false })
+    }
+  },
+
+  /**
+   * 切换积分榜分组
+   */
+  onSwitchStandingGroup(e) {
+    var idx = e.currentTarget.dataset.index
+    if (idx === this.data.selectedGroupIndex) return
+    var target = this.data.standings[idx]
+    if (target) {
+      this.setData({
+        selectedGroupIndex: idx,
+        displayedStandings: [target]
+      })
     }
   },
 
