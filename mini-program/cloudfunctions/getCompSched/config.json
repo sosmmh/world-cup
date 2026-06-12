@@ -2,12 +2,12 @@
   "permissions": {
     "openapi": []
   },
-  "timeout": 20,
+  "timeout": 60,
   "triggers": [
     {
       "name": "refreshCacheTimer",
       "type": "timer",
-      "config": "*/15 * * * * * *"
+      "config": "0 */1 * * * * *"
     }
   ],
   "cloudbase": {

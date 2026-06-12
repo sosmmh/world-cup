@@ -88,13 +88,7 @@ Page({
 
     // 积分榜（保留用于后续扩展）
     standings: [],
-    worldCupGroups: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'],
-
-    // ========== 积分榜视图 ==========
-    standingsLoading: false,
-    standingGroups: [],          // 分组Tab数据 [{group, groupLabel}]
-    selectedGroupIndex: 0,       // 当前选中的分组索引
-    displayedStandings: []         // 当前展示的积分榜数组（过滤后）
+    allStandingsTable: [],    // 全部球队的扁平积分表
   },
 
   onLoad() {
@@ -399,7 +393,7 @@ Page({
       this.refreshOverallView()
     } else if (tab === 'standings') {
       // 切换到积分榜时确保数据已加载
-      if (!this.data.displayedStandings || this.data.displayedStandings.length === 0) {
+      if (!this.data.allStandingsTable || this.data.allStandingsTable.length === 0) {
         this.loadStandings()
       }
     } else {
@@ -527,10 +521,9 @@ Page({
   /* ==================== 积分榜 ==================== */
 
   /**
-   * 加载积分榜数据
+   * 加载积分榜数据（从赛程数据本地计算，全量球队单表展示）
    */
   async loadStandings() {
-    if (this.data.standingsLoading) return
     this.setData({ standingsLoading: true })
 
     try {
@@ -538,77 +531,48 @@ Page({
       console.log('[Schedule] 积分榜返回 code:', res.code, '组数:', (res.data && res.data.standings) ? res.data.standings.length : 0)
 
       if (res.code === 0 && res.data && res.data.standings) {
-        // 用 teamNameMap 补充中文队名 + 队徽本地化
-        var enriched = teamNameMap.enrichStandings(res.data.standings)
-
-        // 队徽URL转本地路径（映射不到时保留原始URL）
-        enriched.forEach(function(sg) {
+        // 取出所有小组的 table 合并为一张大表
+        var allTeams = []
+        res.data.standings.forEach(function(sg) {
           if (sg.table) {
             sg.table.forEach(function(row) {
-              if (row.team && row.team.crest) {
-                var localCrest = crestMap.getLocalCrestUrl(row.team.crest)
-                row.team.crest = localCrest || row.team.crest  // 映射不到则保留原始URL
-              }
+              // 兼容两种格式：扁平 {id,name,crest,...} 或嵌套 {team:{id,name,...},...}
+              var flat = row.team ? Object.assign({}, row, {
+                id: row.team.id,
+                name: row.team.name,
+                shortName: row.team.shortName || row.team.tla,
+                crest: row.team.crest
+              }) : row
+              allTeams.push(flat)
             })
           }
         })
 
-        // 构建分组Tab（去重：同名分组只保留第一个）
-        var groups = []
-        var seenGroupNames = {}
-        if (enriched.length > 0) {
-          groups = enriched.filter(function(sg, i) {
-            var rawLabel = sg.group || 'ALL'
-            if (seenGroupNames[rawLabel]) return false  // 去重
-            seenGroupNames[rawLabel] = true
-            return true
-          }).map(function(sg, i) {
-            var label = sg.group || '总排名'
-            if (label === 'ALL') label = '总排名'
-            else if (label.startsWith('GROUP_')) label = label.replace('GROUP_', '') + '组'
-            return { group: sg.group, groupLabel: label }
-          })
-        }
-
-        // 同步过滤 enriched 数据（只保留去重后的分组）
-        var uniqueGroups = []
-        var seenAgain = {}
-        enriched.forEach(function(sg) {
-          var key = sg.group || 'ALL'
-          if (!seenAgain[key]) {
-            seenAgain[key] = true
-            uniqueGroups.push(sg)
+        // 手动补充中文队名 + 本地ID + 队徽本地化
+        allTeams.forEach(function(t) {
+          t.nameCn = teamNameMap.getChineseName(t)
+          t.localId = teamNameMap.getLocalTeamId(t)
+          if (t.crest) {
+            t.crest = crestMap.getLocalCrestUrl(t.crest) || t.crest
+          }
+          // 补充缺失的 drawn 字段
+          if (t.drawn == null && t.playedGames != null && t.won != null && t.lost != null) {
+            t.drawn = t.playedGames - t.won - t.lost
           }
         })
 
         this.setData({
-          standings: uniqueGroups,
-          standingGroups: groups,
-          selectedGroupIndex: 0,
-          displayedStandings: uniqueGroups.length > 0 ? [uniqueGroups[0]] : [],
+          standings: res.data.standings,
+          allStandingsTable: allTeams,
           standingsLoading: false
         })
+        console.log('[Schedule] 【积分榜】总球队:', allTeams.length)
       } else {
         this.setData({ standingsLoading: false })
       }
     } catch (error) {
       console.error('[Schedule] 加载积分榜失败:', error)
       this.setData({ standingsLoading: false })
-    }
-  },
-
-  /**
-   * 切换积分榜分组
-   */
-  onSwitchStandingGroup(e) {
-    var idx = e.currentTarget.dataset.index
-    if (idx === this.data.selectedGroupIndex) return
-    var target = this.data.standings[idx]
-    if (target) {
-      this.setData({
-        selectedGroupIndex: idx,
-        displayedStandings: [target]
-      })
     }
   },
 

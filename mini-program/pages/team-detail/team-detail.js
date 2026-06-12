@@ -1,6 +1,5 @@
 // pages/team-detail/team-detail.js - 球队详情页（重构版）
 const teamsData = require('../../data/teams2026')
-const staticScheduleData = require('../../data/scheduleStaticData')  // 与赛程页同一数据源（兜底用）
 const teamNameMap = require('../../utils/teamNameMap')               // 英文→中文队名映射
 var footballService = null
 
@@ -100,15 +99,14 @@ Page({
   // ==================== 加载赛程 ====================
 
   /**
-   * 从 scheduleStaticData 本地文件中筛选球队比赛（与赛程页同一数据源的兜底方案）
+   * 从全量赛程数据中筛选球队比赛
    */
-  _filterMatchesFromStatic(team) {
-    var allMatches = staticScheduleData.allMatches || []
-    if (!allMatches.length) return []
+  _filterTeamMatches(allMatches, team) {
+    if (!allMatches || !allMatches.length) return []
 
     var teamNames = [team.name, team.nameEn, team.tla].filter(Boolean)
-    console.log('[TeamDetail] 静态筛选 - 球队名称:', JSON.stringify(teamNames))
-    console.log('[TeamDetail] 静态数据总场数:', allMatches.length)
+    console.log('[TeamDetail] 筛选球队比赛 - 球队名称:', JSON.stringify(teamNames))
+    console.log('[TeamDetail] 全量赛程总场数:', allMatches.length)
 
     var matched = allMatches.filter(function(m) {
       var hName = (m.homeTeam && m.homeTeam.name) || ''
@@ -137,14 +135,7 @@ Page({
       return m
     })
 
-    console.log('[TeamDetail] 静态筛选结果:', team.name, enriched.length + '场')
-    if (enriched.length > 0) {
-      enriched.forEach(function(m, idx) {
-        var home = (m.homeTeam && m.homeTeam.name) || ''
-        var away = (m.awayTeam && m.awayTeam.name) || ''
-        console.log('  [' + idx + '] ' + home + ' vs ' + away + ' | utcDate=' + (m.utcDate||'') + ' | status=' + (m.status||''))
-      })
-    }
+    console.log('[TeamDetail] 筛选结果:', team.name, enriched.length + '场')
     return enriched
   },
 
@@ -157,10 +148,10 @@ Page({
 
     try {
       footballService = footballService || require('../../services/footballService')
-      console.log('[TeamDetail] footballService 已加载，类型检查...')
 
-      footballService.getTeamRealtimeData(team.id).then(function(res) {
-        console.log('[TeamDetail] service 返回:', JSON.stringify({
+      // 使用 getSchedule 获取全量赛程（走云函数缓存+回源机制），然后在前端筛选该球队的比赛
+      footballService.getSchedule({}).then(function(res) {
+        console.log('[TeamDetail] getSchedule 返回:', JSON.stringify({
           code: res.code,
           hasData: !!res.data,
           matchesCount: (res.data && res.data.matches) ? res.data.matches.length : 0,
@@ -168,35 +159,23 @@ Page({
         }))
 
         that.setData({ matchesLoading: false })
-
-        var matches = []
-
-        if (res.code === 0 && res.data && res.data.matches && res.data.matches.length > 0) {
-          // service 返回了有效数据 → 使用 service 数据
-          matches = res.data.matches
-          console.log('[TeamDetail] ✓ 使用 service 返回的数据:', matches.length + '场')
-        } else {
-          // service 没返回有效数据 → 兜底：从本地静态数据读取（跟赛程页同源）
-          console.log('[TeamDetail] ✗ service 无有效数据，触发本地静态数据兜底')
-          matches = that._filterMatchesFromStatic(team)
-        }
+        var allMatches = (res.code === 0 && res.data && res.data.matches) ? res.data.matches : []
+        var matches = that._filterTeamMatches(allMatches, team)
 
         that._computeStats(matches, team)
         that._buildScheduleList(matches, team)
       }).catch(function(e) {
-        console.error('[TeamDetail] service 调用异常:', e)
-        console.log('[TeamDetail] 异常时触发本地静态数据兜底')
+        console.error('[TeamDetail] getSchedule 调用异常:', e)
         that.setData({ matchesLoading: false })
-        var matches = that._filterMatchesFromStatic(team)
-        that._computeStats(matches, team)
-        that._buildScheduleList(matches, team)
+        // 不再兜底静态数据，直接展示空
+        that._computeStats([], team)
+        that._buildScheduleList([], team)
       })
     } catch (e) {
       console.error('[TeamDetail] loadTeamData 初始化异常:', e)
       that.setData({ matchesLoading: false })
-      var matches = that._filterMatchesFromStatic(team)
-      that._computeStats(matches, team)
-      that._buildScheduleList(matches, team)
+      that._computeStats([], team)
+      that._buildScheduleList([], team)
     }
   },
 

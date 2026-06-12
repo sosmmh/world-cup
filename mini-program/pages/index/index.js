@@ -194,14 +194,14 @@ Page({
     var hotTeamNames = ['阿根廷','巴西','法国','德国','英格兰','西班牙','葡萄牙','日本',
                         '荷兰','乌拉圭','克罗地亚','美国','墨西哥','加拿大']
     var quickTeams = allTeams.filter(function(t) { return hotTeamNames.indexOf(t.name) !== -1 }).map(function(t) {
-      return { name: t.name, nameEn: t.nameEn, flag: t.flag, crest: t.crest, group: t.group, nickname: t.nickname }
+      return { id: t.id, name: t.name, nameEn: t.nameEn, flag: t.flag, crest: t.crest, group: t.group, nickname: t.nickname }
     }).slice(0, 8)
 
     // 如果不足8个，补充其他球队
     if (quickTeams.length < 8) {
       var rest = allTeams.filter(function(t) { return hotTeamNames.indexOf(t.name) === -1 }).slice(0, 8 - quickTeams.length)
       quickTeams = quickTeams.concat(rest.map(function(t) {
-        return { name: t.name, nameEn: t.nameEn, flag: t.flag, crest: t.crest, group: t.group, nickname: t.nickname }
+        return { id: t.id, name: t.name, nameEn: t.nameEn, flag: t.flag, crest: t.crest, group: t.group, nickname: t.nickname }
       }))
     }
 
@@ -259,6 +259,8 @@ Page({
 
         // 实时比分使用 getLiveScore 返回的完整数据（含 events）
         let liveMatches = liveScoreRes.code === 0 ? ((liveScoreRes.data && liveScoreRes.data.matches) || []) : []
+        // 补充中文队名
+        liveMatches = teamNameMap.enrichMatches(liveMatches)
 
         // 如果 liveScore 无数据但 todayMatches 中有 LIVE 比赛，回退使用赛程数据
         if (liveMatches.length === 0) {
@@ -380,9 +382,12 @@ Page({
   },
 
   onTapQuickTeam(e) {
-    var name = e.currentTarget.dataset.name
-    // 跳转到球队页，通过name查找
-    wx.navigateTo({ url: '/pages/teams/teams?highlight=' + encodeURIComponent(name) })
+    const id = e.currentTarget.dataset.id
+    if (id) {
+      wx.navigateTo({ url: '/pages/team-detail/team-detail?id=' + id })
+    } else {
+      wx.switchTab({ url: '/pages/teams/teams' })
+    }
   },
 
   onTapMBTI() {

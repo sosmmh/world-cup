@@ -100,7 +100,7 @@
               <text class="score-text" wx:else>
                 VS
               </text>
-              <text class="match-minute">{{item.minute}}'</text>
+              <text class="match-minute" wx:if="{{item.minute}}">{{item.minute}}'</text>
             </view>
             <view class="team away-team">
               <image class="team-crest" src="{{item.awayTeam.crest}}" mode="aspectFit"></image>
@@ -185,7 +185,7 @@
           <!-- 小组标识 -->
           <text class="group-tag tag" wx:if="{{item.group}}">{{item.group}}组</text>
           <text class="match-status {{item.status === 'FINISHED' ? 'status-finished' : item.status === 'LIVE' || item.status === 'IN_PLAY' ? 'status-live' : 'status-upcoming'}}">
-            {{item._statusText}}
+            {{item._statusText || ''}}
           </text>
         </view>
 
@@ -251,7 +251,7 @@
 
     <scroll-view class="teams-preview-scroll" scroll-x="{{true}}" enhanced show-scrollbar="{{false}}">
       <view class="teams-grid">
-        <view class="team-chip" wx:for="{{quickTeams}}" wx:key="name" bindtap="onTapQuickTeam" data-name="{{item.name}}">
+        <view class="team-chip" wx:for="{{quickTeams}}" wx:key="name" bindtap="onTapQuickTeam" data-id="{{item.id}}">
           <image class="team-chip-crest" src="{{item.crest}}" mode="aspectFit"></image>
           <text class="team-chip-name">{{item.name}}</text>
           <text class="team-chip-group">{{item.group}}组</text>

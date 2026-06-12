@@ -71,7 +71,7 @@ function getLocalTeamId(team) {
 }
 
 /**
- * 为赛程比赛数据批量添加中文队名 + 本地ID
+ * 为赛程比赛数据批量添加中文队名 + 本地ID + 比分展示字段
  */
 function enrichMatches(matches) {
   if (!matches || !matches.length) return []
@@ -85,12 +85,53 @@ function enrichMatches(matches) {
       m.awayTeam.nameCn = getChineseName(m.awayTeam)
       m.awayTeam.localId = getLocalTeamId(m.awayTeam)
     }
+
+    // 计算比分展示字段
+    _enrichMatchScore(m)
   }
   return matches
 }
 
 /**
- * 为积分榜数据批量添加中文队名 + 本地ID
+ * 从 score.fullTime 提取比分并设置展示字段
+ * 兼容 football-data.org 原始格式和预计算格式
+ */
+function _enrichMatchScore(m) {
+  // 已有预计算字段则跳过
+  if (m.hasScore != null && m.homeScoreDisplay != null) return
+
+  var homeScore = null
+  var awayScore = null
+
+  // 从 score.fullTime 提取原始数值
+  if (m.score && m.score.fullTime) {
+    if (m.score.fullTime.home != null) homeScore = String(m.score.fullTime.home)
+    if (m.score.fullTime.away != null) awayScore = String(m.score.fullTime.away)
+  }
+
+  // 判断是否有有效比分（FINISHED/POSTPONED/AWARDED 等终态）
+  var finishedStatuses = ['FINISHED', 'AWARDED', 'CANCELLED', 'POSTPONED']
+  var hasValidScore = (homeScore != null || awayScore != null)
+  var isFinished = finishedStatuses.indexOf(m.status) !== -1
+
+  m.hasScore = hasValidScore || isFinished
+  m.isScheduled = ['SCHEDULED', 'TIMED'].indexOf(m.status) !== -1
+
+  if (m.hasScore && hasValidScore) {
+    m.homeScoreDisplay = homeScore !== null ? homeScore : '-'
+    m.awayScoreDisplay = awayScore !== null ? awayScore : '-'
+    m._homeScore = parseInt(homeScore, 10) || 0
+    m._awayScore = parseInt(awayScore, 10) || 0
+  } else {
+    m.homeScoreDisplay = '-'
+    m.awayScoreDisplay = '-'
+    m._homeScore = 0
+    m._awayScore = 0
+  }
+}
+
+/**
+ * 为积分榜数据批量添加中文队名 + 本地ID + 补充缺失字段
  */
 function enrichStandings(standings) {
   if (!standings || !standings.length) return []
@@ -102,6 +143,10 @@ function enrichStandings(standings) {
         if (row.team) {
           row.team.nameCn = getChineseName(row.team)
           row.team.localId = getLocalTeamId(row.team)
+        }
+        // 补充缺失的 drawn 字段（playedGames - won - lost）
+        if (row.drawn == null && row.playedGames != null && row.won != null && row.lost != null) {
+          row.drawn = row.playedGames - row.won - row.lost
         }
       }
     }

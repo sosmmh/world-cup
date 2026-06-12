@@ -241,7 +241,7 @@
     </scroll-view>
   </block>
 
-  <!-- ==================== 视图3：积分榜 ==================== -->
+  <!-- ==================== 视图3：积分榜（全量球队单表） ==================== -->
   <block wx:if="{{currentMainTab === 'standings'}}">
     <!-- 加载状态 -->
     <view class="loading-state" wx:if="{{standingsLoading}}">
@@ -250,59 +250,34 @@
     </view>
 
     <scroll-view scroll-y class="standings-container" wx:if="{{!standingsLoading}}">
-      <!-- 小组Tab切换（如果有分组数据） -->
-      <scroll-view scroll-x enhanced show-scrollbar="{{false}}" class="group-tab-scroll" wx:if="{{standingGroups.length > 1}}">
-        <view class="group-tabs">
-          <view
-            class="group-tab {{selectedGroupIndex === index ? 'active' : ''}}"
-            wx:for="{{standingGroups}}"
-            wx:key="group"
-            bindtap="onSwitchStandingGroup"
-            data-index="{{index}}">
-            {{item.groupLabel}}
-          </view>
-        </view>
-      </scroll-view>
-
       <!-- 积分榜表格列表 -->
       <view class="standings-list">
-        <block wx:for="{{displayedStandings}}" wx:key="group" wx:for-item="sg">
-          <!-- 分组标题 -->
-          <view class="sg-header" wx:if="{{standingGroups.length > 1}}">
-            <view class="sg-title-row">
-              <text class="sg-name">{{sg.groupLabel}}</text>
-              <text class="sg-count">{{sg.table.length}}支球队</text>
-            </view>
-          </view>
+        <!-- 表头 -->
+        <view class="st-table-head">
+          <text class="th rank-th">#</text>
+          <text class="th team-th">球队</text>
+          <text class="th num-th">场</text>
+          <text class="th num-th">胜</text>
+          <text class="th num-th">平</text>
+          <text class="th num-th">负</text>
+          <text class="th num-th">进/失</text>
+          <text class="th gd-th">净胜</text>
+          <text class="th pts-th">积分</text>
+        </view>
 
-          <!-- 表头 -->
-          <view class="st-table-head">
-            <text class="th rank-th">#</text>
-            <text class="th team-th">球队</text>
-            <text class="th num-th">场</text>
-            <text class="th num-th">胜</text>
-            <text class="th num-th">平</text>
-            <text class="th num-th">负</text>
-            <text class="th num-th">进/失</text>
-            <text class="th gd-th">净胜</text>
-            <text class="th pts-th">积分</text>
-          </view>
-
-          <!-- 球排行 -->
+        <!-- 球队排行（全部球队一张表） -->
+        <block wx:for="{{allStandingsTable}}" wx:key="id" wx:for-item="item">
           <view
-            class="st-row {{index < 2 ? 'top' : (index >= sg.table.length - 2 ? 'bottom' : '')}}"
-            wx:for="{{sg.table}}"
-            wx:for-item="team"
-            wx:key="position"
+            class="st-row {{index < 2 ? 'top' : ''}}"
             bindtap="onTeamTap"
-            data-teamid="{{team.localId || team.team.id}}">
+            data-teamid="{{item.localId || item.id}}">
             <text class="td rank-td">{{item.position}}</text>
             <view class="td team-td">
-              <image class="st-crest" src="{{team.team.crest}}" mode="aspectFit" wx:if="{{team.team.crest}}"></image>
+              <image class="st-crest" src="{{item.crest}}" mode="aspectFit" wx:if="{{item.crest}}"></image>
               <view class="st-crest-placeholder" wx:else>
-                <text class="st-crest-letter">{{team.team.shortName || team.team.nameCn && team.team.nameCn[0] || '?'}}</text>
+                <text class="st-crest-letter">{{item.shortName || item.name && item.name[0] || '?'}}</text>
               </view>
-              <text class="st-team-name">{{team.team.nameCn || team.team.name}}</text>
+              <text class="st-team-name">{{item.nameCn || item.name}}</text>
             </view>
             <text class="td num-td">{{item.playedGames}}</text>
             <text class="td num-td">{{item.won}}</text>
@@ -316,7 +291,7 @@
       </view>
 
       <!-- 空状态 -->
-      <view class="empty-state" wx:if="{{!standingsLoading && displayedStandings.length === 0}}">
+      <view class="empty-state" wx:if="{{!standingsLoading && !allStandingsTable || allStandingsTable.length === 0}}">
         <text class="empty-icon">🏆</text>
         <text>暂无积分榜数据</text>
         <text class="empty-tip">比赛开始后将显示积分排名</text>

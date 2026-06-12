@@ -1,7 +1,6 @@
-// services/impl/footballCloudService.js - 云函数实现（含 fallback 到 mock）
+// services/impl/footballCloudService.js - 纯云函数实现（无mock fallback）
 var cacheManager = require('../../utils/cache')
 var config = require('../../config')
-var mockImpl = require('./footballMockService')
 
 var CACHE_PREFIX = {
   SCHEDULE: 'cache_schedule_',
@@ -22,7 +21,7 @@ function callCloudFunction(name, action, data) {
     wx.cloud.callFunction({
       name: name,
       data: Object.assign({ action: action }, data),
-      timeout: 20000,
+      timeout: 50000,
       success: function(res) {
         var result = res.result || {}
         resolve({ code: result.code || 0, message: result.message || 'success', data: result.data })
@@ -35,32 +34,14 @@ function callCloudFunction(name, action, data) {
   })
 }
 
-/**
- * 判断是否需要 fallback：超时 / 冷启动 / 空数据
- */
-function shouldFallbackToMock(res) {
-  if (!res) return true
-  if (res.data && !res.data.cached && (
-    res.message === 'cold_start' || 
-    res.source === 'empty' ||
-    (res.data.matches && res.data.matches.length === 0 && !res.data.fetchedAt)
-  )) {
-    console.warn('[CloudService] 检测到冷启动/空数据，fallback → mock')
-    return true
-  }
-  return false
-}
-
 var cloudService = {
+
+  // ========== 赛程相关 ==========
+
   async getSchedule(params) {
-    try {
-      var res = await callCloudFunction('getCompSched', 'getSchedule', params)
-      if (!shouldFallbackToMock(res)) return res
-    } catch(e) {
-      console.warn('[CloudService] getSchedule 异常，fallback → mock:', e.message)
-    }
-    console.log('[CloudService] getSchedule 使用 mock 数据')
-    return await mockImpl.getSchedule(params)
+    var res = await callCloudFunction('getCompSched', 'getSchedule', params)
+    if (res.code === 0 && res.data) return res
+    throw new Error(res.message || '获取赛程失败')
   },
 
   async getTodayMatches(forceRefresh) {
@@ -69,32 +50,22 @@ var cloudService = {
       var cached = cacheManager.get(cacheKey, config.cache.schedule)
       if (cached) return { code: 0, data: cached }
     }
-    try {
-      var res = await callCloudFunction('getCompSched', 'todayMatches')
-      if (!shouldFallbackToMock(res)) {
-        if (res.code === 0) cacheManager.set(cacheKey, res.data, config.cache.schedule)
-        return res
-      }
-    } catch(e) {
-      console.warn('[CloudService] getTodayMatches 异常，fallback → mock:', e.message)
+    var res = await callCloudFunction('getCompSched', 'todayMatches')
+    if (res.code === 0 && res.data) {
+      cacheManager.set(cacheKey, res.data, config.cache.schedule)
     }
-    return await mockImpl.getTodayMatches(forceRefresh)
+    return res
   },
 
   async getLiveScore() {
     var cacheKey = CACHE_PREFIX.LIVE_SCORE
     var cached = cacheManager.get(cacheKey, config.cache.liveScore)
     if (cached) return { code: 0, data: cached }
-    try {
-      var res = await callCloudFunction('getCompSched', 'liveScore')
-      if (!shouldFallbackToMock(res)) {
-        if (res.code === 0) cacheManager.set(cacheKey, res.data, config.cache.liveScore)
-        return res
-      }
-    } catch(e) {
-      console.warn('[CloudService] getLiveScore 异常，fallback → mock:', e.message)
+    var res = await callCloudFunction('getCompSched', 'liveScore')
+    if (res.code === 0 && res.data) {
+      cacheManager.set(cacheKey, res.data, config.cache.liveScore)
     }
-    return await mockImpl.getLiveScore()
+    return res
   },
 
   async getStandings(groupName) {
@@ -102,16 +73,11 @@ var cloudService = {
     var cacheKey = CACHE_PREFIX.STANDINGS + (groupName || 'all')
     var cached = cacheManager.get(cacheKey, config.cache.standings)
     if (cached) return { code: 0, data: cached }
-    try {
-      var res = await callCloudFunction('getCompSched', 'standings', { group: groupName })
-      if (!shouldFallbackToMock(res)) {
-        if (res.code === 0) cacheManager.set(cacheKey, res.data, config.cache.standings)
-        return res
-      }
-    } catch(e) {
-      console.warn('[CloudService] getStandings 异常，fallback → mock:', e.message)
+    var res = await callCloudFunction('getCompSched', 'standings', { group: groupName })
+    if (res.code === 0 && res.data) {
+      cacheManager.set(cacheKey, res.data, config.cache.standings)
     }
-    return await mockImpl.getStandings(groupName)
+    return res
   },
 
   async getScorers(leagueId, season) {
@@ -120,69 +86,88 @@ var cloudService = {
     var cacheKey = CACHE_PREFIX.SCORERS + (leagueId || 'wc') + '_' + (season || '2026')
     var cached = cacheManager.get(cacheKey, config.cache.standings || 30)
     if (cached) return { code: 0, data: cached }
-    try {
-      var res = await callCloudFunction('getCompSched', 'scorers', { leagueId: leagueId, season: season })
-      if (!shouldFallbackToMock(res)) {
-        if (res.code === 0) cacheManager.set(cacheKey, res.data, config.cache.standings || 30)
-        return res
-      }
-    } catch(e) {
-      console.warn('[CloudService] getScorers 异常，fallback → mock:', e.message)
+    var res = await callCloudFunction('getCompSched', 'scorers', { leagueId: leagueId, season: season })
+    if (res.code === 0 && res.data) {
+      cacheManager.set(cacheKey, res.data, config.cache.standings || 30)
     }
-    return await mockImpl.getScorers(leagueId, season)
+    return res
   },
 
+  // ========== 新闻 ==========
+
   async getHotNews(category, page, pageSize, forceRefresh) {
-    console.log('========== [CLOUD] getHotNews 被调用 ==========')
     category = category || null
     page = page || 1
     pageSize = pageSize || 10
     forceRefresh = forceRefresh || false
     var cacheKey = CACHE_PREFIX.NEWS + 'v2_' + (category || 'all') + '_' + page
-    // 先查本地缓存
     if (!forceRefresh) {
       var cached = cacheManager.get(cacheKey, config.cache.news)
-      if (cached) {
-        console.log('[CloudService] getHotNews 命中本地缓存, key=' + cacheKey + ' 条数:' + cached.length)
-        return { code: 0, data: cached }
-      }
+      if (cached) return { code: 0, data: cached }
     }
-    // 强制跳过本地缓存时，通知云函数也刷新
-    console.log('[CloudService] getHotNews 调用云函数 getNews (forceRefresh=' + forceRefresh + ')...')
+    var res = await callCloudFunction('getNews', forceRefresh ? 'forceRefresh' : 'getHotNews', {
+      category: category,
+      page: page,
+      pageSize: pageSize
+    })
+    if (res.code === 0 && res.data) {
+      cacheManager.set(cacheKey, res.data, config.cache.news)
+    }
+    return res
+  },
+
+  // ========== 球员 / 球队 ==========
+
+  async getPlayerInfo(playerId) {
     try {
-      var res = await callCloudFunction('getNews', forceRefresh ? 'forceRefresh' : 'getHotNews', { category: category, page: page, pageSize: pageSize })
-      console.log('[CloudService] getHotNews 云函数返回:', JSON.stringify(res).substring(0, 300))
+      var cacheKey = CACHE_PREFIX.PLAYER_INFO + playerId
+      var cached = cacheManager.get(cacheKey, config.cache.schedule)
+      if (cached) return { code: 0, data: cached }
+      var res = await callCloudFunction('getPlayerInfo', 'info', { playerId: playerId })
       if (res.code === 0 && res.data) {
-        cacheManager.set(cacheKey, res.data, config.cache.news)
+        cacheManager.set(cacheKey, res.data, config.cache.schedule)
       }
       return res
     } catch(e) {
-      console.error('[CloudService] getHotNews 异常:', e.message)
-      return { code: -1, message: '获取新闻失败: ' + e.message, data: [] }
+      console.error('[CloudService] getPlayerInfo 失败:', e.message)
+      return { code: -1, message: e.message, data: null }
     }
   },
 
-  async getPlayerInfo(playerId) {
-    var cacheKey = CACHE_PREFIX.PLAYER_INFO + playerId
-    var cached = cacheManager.get(cacheKey, config.cache.schedule)
-    if (cached) return { code: 0, data: cached }
-    return await mockImpl.getPlayerInfo(playerId)
-  },
-
   async getTeamRealtimeData(teamId) {
-    var cacheKey = CACHE_PREFIX.TEAM_INFO + teamId
-    var cached = cacheManager.get(cacheKey, config.cache.teams)
-    if (cached) return { code: 0, data: cached }
-    return await mockImpl.getTeamRealtimeData(teamId)
+    try {
+      var cacheKey = CACHE_PREFIX.TEAM_INFO + teamId
+      var cached = cacheManager.get(cacheKey, config.cache.teams)
+      if (cached) return { code: 0, data: cached }
+      var res = await callCloudFunction('getTeamInfo', 'realtime', { teamId: teamId })
+      if (res.code === 0 && res.data) {
+        cacheManager.set(cacheKey, res.data, config.cache.teams)
+      }
+      return res
+    } catch(e) {
+      console.error('[CloudService] getTeamRealtimeData 失败:', e.message)
+      return { code: -1, message: e.message, data: null }
+    }
   },
 
   async getRecommendPlayers(count) {
     count = count || 10
-    var cacheKey = CACHE_PREFIX.PLAYER_INFO + 'recommend'
-    var cached = cacheManager.get(cacheKey, config.cache.teams)
-    if (cached) return { code: 0, data: cached }
-    return await mockImpl.getRecommendPlayers(count)
+    try {
+      var cacheKey = CACHE_PREFIX.PLAYER_INFO + 'recommend'
+      var cached = cacheManager.get(cacheKey, config.cache.teams)
+      if (cached) return { code: 0, data: cached }
+      var res = await callCloudFunction('getPlayerInfo', 'recommend', { count: count })
+      if (res.code === 0 && res.data) {
+        cacheManager.set(cacheKey, res.data, config.cache.teams)
+      }
+      return res
+    } catch(e) {
+      console.error('[CloudService] getRecommendPlayers 失败:', e.message)
+      return { code: -1, message: e.message, data: [] }
+    }
   },
+
+  // ========== 缓存管理 ==========
 
   clearCache(type) {
     var prefixMap = {

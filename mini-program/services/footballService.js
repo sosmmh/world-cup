@@ -9,9 +9,9 @@ function getFootballService() {
       return require('./impl/footballCloudService')
     case 'http':
       return require('./impl/footballHttpService')
-    case 'mock':
     default:
-      return require('./impl/footballMockService')
+      console.warn('[footballService] 未知适配器:', config.adapter, '，默认使用 cloud')
+      return require('./impl/footballCloudService')
   }
 }
 
