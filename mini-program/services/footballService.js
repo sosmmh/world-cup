@@ -1,6 +1,7 @@
-// services/footballService.js - 足球数据服务（统一入口，自动转换队徽URL为本地路径）
+// services/footballService.js - 足球数据服务（统一入口，自动转换队徽URL为可用路径）
 var config = require('../config')
 var crestMap = require('../utils/crestMap')
+var cloudImage = require('../utils/cloudImage')
 
 function getFootballService() {
   console.log('[footballService] config.adapter =', config.adapter)
@@ -25,6 +26,7 @@ var footballService = {
     var res = await impl.getSchedule(params)
     if (res.code === 0 && res.data && res.data.matches) {
       crestMap.convertMatchCrests(res.data.matches)
+      await cloudImage.resolveCrestsInData(res.data.matches)
     }
     return res
   },
@@ -33,6 +35,7 @@ var footballService = {
     var res = await impl.getTodayMatches(forceRefresh)
     if (res.code === 0 && res.data && res.data.matches) {
       crestMap.convertMatchCrests(res.data.matches)
+      await cloudImage.resolveCrestsInData(res.data.matches)
     }
     return res
   },
@@ -41,6 +44,7 @@ var footballService = {
     var res = await impl.getLiveScore()
     if (res.code === 0 && res.data && res.data.matches) {
       crestMap.convertMatchCrests(res.data.matches)
+      await cloudImage.resolveCrestsInData(res.data.matches)
     }
     return res
   },
@@ -59,6 +63,8 @@ var footballService = {
           })
         }
       })
+      // 将 cloud fileID 转 temp URL
+      await cloudImage.resolveCrestsInData(res.data.standings)
     }
     return res
   },
@@ -72,6 +78,7 @@ var footballService = {
           res.data[i].teamCrest = crestMap.getLocalCrestUrl(res.data[i].teamCrest)
         }
       }
+      await cloudImage.resolveCrestsInData(res.data)
     }
     return res
   },
@@ -88,6 +95,11 @@ var footballService = {
     var res = await impl.getTeamRealtimeData(teamId)
     if (res.code === 0 && res.data && res.data.crest) {
       res.data.crest = crestMap.getLocalCrestUrl(res.data.crest)
+      // cloud fileID → temp URL
+      if (res.data.crest.indexOf('cloud://') === 0) {
+        var tempUrl = await cloudImage.resolveImageUrl(res.data.crest)
+        if (tempUrl) res.data.crest = tempUrl
+      }
     }
     return res
   },

@@ -3,16 +3,17 @@ const footballService = require('../../services/footballService')
 const slangData = require('../../data/slangData')
 const teamsData = require('../../data/teams2026')
 const teamNameMap = require('../../utils/teamNameMap')
+const cloudImage = require('../../utils/cloudImage')
 
 // 2026世界杯开幕时间（北京时间 2026-06-11 08:00）
 const WC_OPENING_DATE = new Date('2026-06-11T08:00:00+08:00').getTime()
 
 // 精选热门对阵（赛前展示用）- 从48强中挑选焦点对决
 var FEATURED_MATCHUPS = [
-  { home: '阿根廷', away: '葡萄牙', tag: '球王之争', homeCrest: '/images/crests/31_762.png', awayCrest: '/images/crests/29_765.svg' },
-  { home: '巴西', away: '法国', tag: '桑巴对决高卢雄鸡', homeCrest: '/images/crests/09_764.svg', awayCrest: '/images/crests/35_773.svg' },
-  { home: '英格兰', away: '德国', tag: '英德大战', homeCrest: '/images/crests/26_770.svg', awayCrest: '/images/crests/20_759.svg' },
-  { home: '西班牙', away: '日本', tag: '传控对决', homeCrest: '/images/crests/38_760.svg', awayCrest: '/images/crests/25_766.svg' }
+  { home: '阿根廷', away: '葡萄牙', tag: '球王之争', homeCrest: 'cloud://cloud1-d9ggl0zmj3ead091b.636c-cloud1-d9ggl0zmj3ead091b-1440298526/images/crests/31_762.png', awayCrest: 'cloud://cloud1-d9ggl0zmj3ead091b.636c-cloud1-d9ggl0zmj3ead091b-1440298526/images/crests/29_765.svg' },
+  { home: '巴西', away: '法国', tag: '桑巴对决高卢雄鸡', homeCrest: 'cloud://cloud1-d9ggl0zmj3ead091b.636c-cloud1-d9ggl0zmj3ead091b-1440298526/images/crests/09_764.svg', awayCrest: 'cloud://cloud1-d9ggl0zmj3ead091b.636c-cloud1-d9ggl0zmj3ead091b-1440298526/images/crests/35_773.svg' },
+  { home: '英格兰', away: '德国', tag: '英德大战', homeCrest: 'cloud://cloud1-d9ggl0zmj3ead091b.636c-cloud1-d9ggl0zmj3ead091b-1440298526/images/crests/26_770.svg', awayCrest: 'cloud://cloud1-d9ggl0zmj3ead091b.636c-cloud1-d9ggl0zmj3ead091b-1440298526/images/crests/20_759.svg' },
+  { home: '西班牙', away: '日本', tag: '传控对决', homeCrest: 'cloud://cloud1-d9ggl0zmj3ead091b.636c-cloud1-d9ggl0zmj3ead091b-1440298526/images/crests/38_760.svg', awayCrest: 'cloud://cloud1-d9ggl0zmj3ead091b.636c-cloud1-d9ggl0zmj3ead091b-1440298526/images/crests/25_766.svg' }
 ]
 
 Page({
@@ -54,6 +55,7 @@ Page({
     this._initCountdown()       // 初始化倒计时
     this._loadTodaySlangs()
     this._loadQuickTeams()      // 加载快速浏览球队
+    this._resolveFeaturedCrests() // 转换热门对阵队徽 cloud fileID
     this._loadAllData()
     this._startCountdownTimer() // 启动倒计时定时器
     this._loadRecommendPlayers().catch(() => {})
@@ -138,6 +140,19 @@ Page({
     }
   },
 
+  /**
+   * 转换热门对阵预览中的 cloud fileID 为 temp URL
+   */
+  _resolveFeaturedCrests() {
+    var self = this
+    cloudImage.resolveCrestsInData(this.data.featuredMatchups).then(function() {
+      // resolveCrestsInData 已原地修改对象，需要 setData 刷新视图
+      self.setData({ featuredMatchups: FEATURED_MATCHUPS })
+    }).catch(function(e) {
+      console.warn('[Index] featured 队徽转换失败:', e)
+    })
+  },
+
   /** 启动倒计时定时器（每秒更新） */
   _startCountdownTimer() {
     var self = this
@@ -206,6 +221,15 @@ Page({
     }
 
     this.setData({ quickTeams: quickTeams })
+    
+    // 将 cloud fileID 转 temp URL
+    cloudImage.resolveCrestsInData(quickTeams).then(function() {
+      // 回写已转换的数据
+      var resolved = quickTeams.map(function(t) { return t })
+      // 直接更新 crest 字段（resolveCrestsInData 已原地修改对象）
+    }).catch(function(e) {
+      console.warn('[Index] quickTeams 队徽转换失败:', e)
+    })
   },
 
   /**
