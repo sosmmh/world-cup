@@ -1,4 +1,4 @@
-// utils/fbtiEngine.js - FBTI 2.0 计分引擎 (V4)
+// utils/fbtiEngine.js - FBTI 2.0 计分引擎 (V6)
 // Football Behavior Type Indicator — 五模型十五维度向量匹配系统
 //
 // 算法流程：
@@ -6,9 +6,15 @@
 //     → 15维度原始分聚合 (每维度1~2题，范围1~6)
 //     → 自适应 L/M/H 三级映射 (根据每维度实际抽到的题目数动态调整阈值)
 //     → 隐藏彩蛋检测 (H1且H2均选value=3 → DRUNK)
-//     → 与27个人格模板计算曼哈顿距离
-//     → 最近邻匹配 + 相似度百分比
+//     → 与27个人格模板计算 曼哈顿距离 + 中心排斥修正
+//     → 均衡匹配 + 相似度百分比
 //     → <60% → HHHH兜底
+//
+// V6 核心改进：中心排斥力（Centrality Repulsion）
+//   问题：纯最近邻匹配导致中心向量(如CTRL=全M)吸走大部分用户，边缘人格极少出现
+//   解法：计算每个人格的"中心度"(距全M向量的距离)，对高中心度的人格施加距离惩罚
+//         adjustedDist = rawDist + REPULSION_FACTOR × (MAX_CENTRALITY - profileCentrality)
+//   效果：中心人格的有效距离被拉大，边缘人格获得公平竞争机会
 
 const { questions: allQuestions } = require('../data/fbtiQuestions')
 const { profiles: allProfiles } = require('../data/fbtiProfiles')
@@ -233,27 +239,57 @@ const fbtiEngine = {
       return this._buildResult(drunkProfile, userVector, rawScores, answers, true)
     }
 
-    // ===== Step 4: 曼哈顿距离最近邻匹配 =====
-    let bestMatch = null
-    let minDistance = Infinity
+    // ===== Step 4: 中心排斥力均衡匹配 (V6) =====
+    // 问题：纯最近邻匹配导致中心向量(如CTRL=全M)吸走大部分用户，边缘人格极少出现
+    // 解法：计算每个人格的"中心度"(距全M向量的距离)，对高中心度的人格施加距离惩罚
+    //
+    // 中心度 = profile向量 与 [2,2,...,2](全M) 的曼哈顿距离
+    //   中心度高 = 向量接近全M = 天然吸量 → 需要排斥
+    //   中心度低 = 向量在边缘 → 本来就难匹配到 → 不排斥
+    //
+    // adjustedDist = rawDist + REPULSION × (MAX_CENTRALITY - profileCentrality)
+    const CENTER_VECTOR = [2,2,2, 2,2,2, 2,2,2, 2,2,2, 2,2,2]
+    const REPULSION_FACTOR = 0.8   // 排斥力系数，越大则边缘人格越容易被选中
 
+    // 先找出所有可见人格的最大中心度（用于归一化）
+    let maxCentrality = 0
+    var allCandidates = []
     for (const profile of allProfiles) {
-      // 跳过隐藏和兜底人格
       if (profile.isHidden || profile.isDefault) continue
 
-      let distance = 0
+      // 计算该人格的中心度
+      let centrality = 0
       for (let i = 0; i < 15; i++) {
-        distance += Math.abs(userVector[i] - profile.vector[i])
+        centrality += Math.abs(profile.vector[i] - CENTER_VECTOR[i])
+      }
+      if (centrality > maxCentrality) maxCentrality = centrality
+
+      // 计算原始距离
+      let rawDist = 0
+      for (let i = 0; i < 15; i++) {
+        rawDist += Math.abs(userVector[i] - profile.vector[i])
       }
 
-      if (distance < minDistance) {
-        minDistance = distance
-        bestMatch = profile
+      allCandidates.push({ profile, rawDist, centrality })
+    }
+
+    // 应用中心排斥修正，选择调整后距离最小的
+    let bestMatch = null
+    let minAdjustedDist = Infinity
+
+    for (const c of allCandidates) {
+      // 核心公式：中心度越高(越接近全M)，惩罚越大
+      const penalty = REPULSION_FACTOR * (maxCentrality - c.centrality)
+      const adjustedDist = c.rawDist + penalty
+
+      if (adjustedDist < minAdjustedDist) {
+        minAdjustedDist = adjustedDist
+        bestMatch = c.profile
       }
     }
 
     // ===== Step 5: 兜底检测 =====
-    const similarity = calcSimilarity(minDistance)
+    const similarity = calcSimilarity(minAdjustedDist)
     if (similarity < 60) {
       const defaultProfile = allProfiles.find(p => p.code === 'HHHH')
       return this._buildResult(defaultProfile, userVector, rawScores, answers, false)
