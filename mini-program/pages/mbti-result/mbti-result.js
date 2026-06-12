@@ -139,203 +139,203 @@ Page({
     setTimeout(function () {
       var query = wx.createSelectorQuery().in(that)
       query.select('#posterCanvas')
-        .fields({ node: true, size: true })
-        .exec(function (res) {
-          if (!res[0] || !res[0].node) return
+          .fields({ node: true, size: true })
+          .exec(function (res) {
+            if (!res[0] || !res[0].node) return
 
-          var canvas = res[0].node
-          var ctx = canvas.getContext('2d')
-          canvas.width = res[0].width * dpr
-          canvas.height = res[0].height * dpr
-          ctx.scale(dpr, dpr)
+            var canvas = res[0].node
+            var ctx = canvas.getContext('2d')
+            canvas.width = res[0].width * dpr
+            canvas.height = res[0].height * dpr
+            ctx.scale(dpr, dpr)
 
-          var cW = res[0].width
-          var cH = res[0].height
-          var pad = cW * 0.056
+            var cW = res[0].width
+            var cH = res[0].height
+            var pad = cW * 0.056
 
-          // ====== 1. 背景：主题色渐变 ======
-          var bgGrad = ctx.createLinearGradient(0, 0, 0, cH)
-          bgGrad.addColorStop(0, that._lightenColor(themeColor, 10))
-          bgGrad.addColorStop(0.35, themeColor)
-          bgGrad.addColorStop(1, that._darkenColor(themeColor, 45))
-          that._drawRoundRect(ctx, 0, 0, cW, cH, 0)
-          ctx.fillStyle = bgGrad
-          ctx.fill()
+            // ====== 1. 背景：主题色渐变 ======
+            var bgGrad = ctx.createLinearGradient(0, 0, 0, cH)
+            bgGrad.addColorStop(0, that._lightenColor(themeColor, 10))
+            bgGrad.addColorStop(0.35, themeColor)
+            bgGrad.addColorStop(1, that._darkenColor(themeColor, 45))
+            that._drawRoundRect(ctx, 0, 0, cW, cH, 0)
+            ctx.fillStyle = bgGrad
+            ctx.fill()
 
-          // 背景装饰 — 半透明圆形/菱形
-          ctx.globalAlpha = 0.06
-          ctx.fillStyle = '#fff'
-          ctx.beginPath()
-          ctx.arc(cW * 0.85, cH * 0.12, cW * 0.35, 0, Math.PI * 2)
-          ctx.fill()
-          ctx.beginPath()
-          ctx.arc(-cW * 0.1, cH * 0.7, cW * 0.28, 0, Math.PI * 2)
-          ctx.fill()
-          ctx.globalAlpha = 1
+            // 背景装饰 — 半透明圆形/菱形
+            ctx.globalAlpha = 0.06
+            ctx.fillStyle = '#fff'
+            ctx.beginPath()
+            ctx.arc(cW * 0.85, cH * 0.12, cW * 0.35, 0, Math.PI * 2)
+            ctx.fill()
+            ctx.beginPath()
+            ctx.arc(-cW * 0.1, cH * 0.7, cW * 0.28, 0, Math.PI * 2)
+            ctx.fill()
+            ctx.globalAlpha = 1
 
-          // ====== 2. 顶部品牌区 ======
-          var topY = pad + 12
-          // 品牌标签背景
-          var brandW = 220
-          var brandX = (cW - brandW) / 2
-          ctx.fillStyle = 'rgba(255,255,255,0.18)'
-          that._drawRoundRect(ctx, brandX, topY, brandW, 36, 18)
-          ctx.fill()
+            // ====== 2. 顶部品牌区 ======
+            var topY = pad + 12
+            // 品牌标签背景
+            var brandW = 220
+            var brandX = (cW - brandW) / 2
+            ctx.fillStyle = 'rgba(255,255,255,0.18)'
+            that._drawRoundRect(ctx, brandX, topY, brandW, 36, 18)
+            ctx.fill()
 
-          ctx.font = 'bold 14px sans-serif'
-          ctx.textAlign = 'center'
-          ctx.textBaseline = 'middle'
-          ctx.fillStyle = '#fff'
-          ctx.fillText('⚽ FBTI 2.0 · 测测你是哪种球迷', cW / 2, topY + 18)
+            ctx.font = 'bold 14px sans-serif'
+            ctx.textAlign = 'center'
+            ctx.textBaseline = 'middle'
+            ctx.fillStyle = '#fff'
+            ctx.fillText('⚽ FBTI 2.0 · 测测你是哪种球迷', cW / 2, topY + 18)
 
-          // ====== 3. Emoji 大图标 ======
-          var emojiY = topY + 64
-          ctx.font = '72px sans-serif'
-          ctx.textAlign = 'center'
-          ctx.textBaseline = 'middle'
-          ctx.fillText(r.emoji || '⚽', cW / 2, emojiY)
+            // ====== 3. Emoji 大图标 ======
+            var emojiY = topY + 64
+            ctx.font = '72px sans-serif'
+            ctx.textAlign = 'center'
+            ctx.textBaseline = 'middle'
+            ctx.fillText(r.emoji || '⚽', cW / 2, emojiY)
 
-          // ====== 4. 代码徽章（大字体） ======
-          var codeY = emojiY + 54
-      var codeBgW = Math.min(ctx.measureText(r.code).width + 50, 240)
-      var codeBgX = (cW - codeBgW) / 2
-      ctx.fillStyle = 'rgba(0,0,0,0.25)'
-      that._drawRoundRect(ctx, codeBgX, codeY - 18, codeBgW, 40, 20)
-      ctx.fill()
-      ctx.font = '900 28px sans-serif'
-      ctx.fillStyle = '#fff'
-      ctx.textAlign = 'center'
-      ctx.textBaseline = 'middle'
-      ctx.letterSpacing = '4px'
-      ctx.fillText(r.code, cW / 2, codeY + 2)
+            // ====== 4. 代码徽章（大字体） ======
+            var codeY = emojiY + 54
+            var codeBgW = Math.min(ctx.measureText(r.code).width + 50, 240)
+            var codeBgX = (cW - codeBgW) / 2
+            ctx.fillStyle = 'rgba(0,0,0,0.25)'
+            that._drawRoundRect(ctx, codeBgX, codeY - 18, codeBgW, 40, 20)
+            ctx.fill()
+            ctx.font = '900 28px sans-serif'
+            ctx.fillStyle = '#fff'
+            ctx.textAlign = 'center'
+            ctx.textBaseline = 'middle'
+            ctx.letterSpacing = '4px'
+            ctx.fillText(r.code, cW / 2, codeY + 2)
 
-      // ====== 5. 中文名 + 英文名 ======
-      var nameY = codeY + 42
-      ctx.font = '800 26px sans-serif'
-      ctx.fillStyle = '#fff'
-      ctx.textAlign = 'center'
-      ctx.textBaseline = 'middle'
-      ctx.fillText(r.name, cW / 2, nameY)
+            // ====== 5. 中文名 + 英文名 ======
+            var nameY = codeY + 42
+            ctx.font = '800 26px sans-serif'
+            ctx.fillStyle = '#fff'
+            ctx.textAlign = 'center'
+            ctx.textBaseline = 'middle'
+            ctx.fillText(r.name, cW / 2, nameY)
 
-      ctx.font = '300 13px sans-serif'
-      ctx.fillStyle = 'rgba(255,255,255,0.7)'
-      ctx.fillText(r.enName || '', cW / 2, nameY + 26)
+            ctx.font = '300 13px sans-serif'
+            ctx.fillStyle = 'rgba(255,255,255,0.7)'
+            ctx.fillText(r.enName || '', cW / 2, nameY + 26)
 
-      // Badge 标签
-      var badgeY = nameY + 48
-      var badgeText = r.badge || ''
-      var badgeW = ctx.measureText(badgeText).width + 32
-      var badgePx = (cW - badgeW) / 2
-      ctx.fillStyle = 'rgba(255,255,255,0.22)'
-      that._drawRoundRect(ctx, badgePx, badgeY - 12, badgeW, 24, 12)
-      ctx.fill()
-      ctx.font = '500 12px sans-serif'
-      ctx.fillStyle = 'rgba(255,255,255,0.9)'
-      ctx.fillText(badgeText, cW / 2, badgeY)
+            // Badge 标签
+            var badgeY = nameY + 48
+            var badgeText = r.badge || ''
+            var badgeW = ctx.measureText(badgeText).width + 32
+            var badgePx = (cW - badgeW) / 2
+            ctx.fillStyle = 'rgba(255,255,255,0.22)'
+            that._drawRoundRect(ctx, badgePx, badgeY - 12, badgeW, 24, 12)
+            ctx.fill()
+            ctx.font = '500 12px sans-serif'
+            ctx.fillStyle = 'rgba(255,255,255,0.9)'
+            ctx.fillText(badgeText, cW / 2, badgeY)
 
-      // ====== 6. 白色内容卡片 ======
-      var cardY = badgeY + 36
-      var cardH = cH - cardY - pad - 90 // 底部留空间给二维码
-      ctx.fillStyle = 'rgba(255,255,255,0.96)'
-      that._drawRoundRect(ctx, pad, cardY, cW - pad * 2, cardH, 16)
-      ctx.fill()
+            // ====== 6. 白色内容卡片 ======
+            var cardY = badgeY + 36
+            var cardH = cH - cardY - pad - 90 // 底部留空间给二维码
+            ctx.fillStyle = 'rgba(255,255,255,0.96)'
+            that._drawRoundRect(ctx, pad, cardY, cW - pad * 2, cardH, 16)
+            ctx.fill()
 
-      // 卡片内描述标题
-      var innerPad = pad + 12
-      ctx.font = 'bold 13px sans-serif'
-      ctx.fillStyle = themeColor
-      ctx.textAlign = 'left'
-      ctx.textBaseline = 'top'
-      ctx.fillText('● 人格特征', innerPad, cardY + 18)
+            // 卡片内描述标题
+            var innerPad = pad + 12
+            ctx.font = 'bold 13px sans-serif'
+            ctx.fillStyle = themeColor
+            ctx.textAlign = 'left'
+            ctx.textBaseline = 'top'
+            ctx.fillText('● 人格特征', innerPad, cardY + 18)
 
-      // 描述文案（自动换行）
-      var desc = r.description || ''
-      var maxDescW = cW - innerPad * 2
-      ctx.font = 'normal 13px sans-serif'
-      ctx.fillStyle = 'rgba(40,40,40,0.82)'
-      that._wrapText(ctx, desc, innerPad, cardY + 42, maxDescW, 19)
+            // 描述文案（自动换行）
+            var desc = r.description || ''
+            var maxDescW = cW - innerPad * 2
+            ctx.font = 'normal 13px sans-serif'
+            ctx.fillStyle = 'rgba(40,40,40,0.82)'
+            that._wrapText(ctx, desc, innerPad, cardY + 42, maxDescW, 19)
 
-      // 分割线
-      var lineY = cardY + cardH * 0.52
-      ctx.strokeStyle = 'rgba(0,0,0,0.06)'
-      ctx.lineWidth = 1
-      ctx.beginPath()
-      ctx.moveTo(innerPad, lineY)
-      ctx.lineTo(cW - innerPad, lineY)
-      ctx.stroke()
+            // 分割线
+            var lineY = cardY + cardH * 0.52
+            ctx.strokeStyle = 'rgba(0,0,0,0.06)'
+            ctx.lineWidth = 1
+            ctx.beginPath()
+            ctx.moveTo(innerPad, lineY)
+            ctx.lineTo(cW - innerPad, lineY)
+            ctx.stroke()
 
-      // 金句区域
-      ctx.font = 'bold 12px sans-serif'
-      ctx.fillStyle = '#E6A817'
-      ctx.textAlign = 'left'
-      ctx.textBaseline = 'top'
-      ctx.fillText('💬 经典语录', innerPad, lineY + 14)
+            // 金句区域
+            ctx.font = 'bold 12px sans-serif'
+            ctx.fillStyle = '#E6A817'
+            ctx.textAlign = 'left'
+            ctx.textBaseline = 'top'
+            ctx.fillText('💬 经典语录', innerPad, lineY + 14)
 
-      var quote = r.goldQuote || ''
-      ctx.font = '400 13px sans-serif'
-      ctx.fillStyle = 'rgba(60,60,60,0.88)'
-      that._wrapText(ctx, quote, innerPad, lineY + 36, maxDescW, 20)
+            var quote = r.goldQuote || ''
+            ctx.font = '400 13px sans-serif'
+            ctx.fillStyle = 'rgba(60,60,60,0.88)'
+            that._wrapText(ctx, quote, innerPad, lineY + 36, maxDescW, 20)
 
-      // ====== 7. 底部区域（卡片外） ======
-      var bottomY = cardY + cardH + 16
-      var qrSize = 100
-      var qrX = (cW - qrSize) / 2
+            // ====== 7. 底部区域（卡片外） ======
+            var bottomY = cardY + cardH + 16
+            var qrSize = 100
+            var qrX = (cW - qrSize) / 2
 
-      // 二维码区域：白色圆角底 + 内边框装饰
-      ctx.fillStyle = '#fff'
-      that._drawRoundRect(ctx, qrX, bottomY, qrSize, qrSize, 14)
-      ctx.fill()
+            // 二维码区域：白色圆角底 + 内边框装饰
+            ctx.fillStyle = '#fff'
+            that._drawRoundRect(ctx, qrX, bottomY, qrSize, qrSize, 14)
+            ctx.fill()
 
-      // 内边框 — 三条边的装饰线（右上角缺角风格）
-      ctx.strokeStyle = themeColor
-      ctx.lineWidth = 1.5
-      ctx.beginPath()
-      // 上边线
-      ctx.moveTo(qrX + 8, bottomY + 4)
-      ctx.lineTo(qrX + qrSize - 4, bottomY + 4)
-      // 右边线
-      ctx.lineTo(qrX + qrSize - 4, bottomY + qrSize - 8)
-      // 下边线（只画一半）
-      ctx.lineTo(qrX + qrSize / 2 + 4, bottomY + qrSize - 4)
-      ctx.stroke()
+            // 内边框 — 三条边的装饰线（右上角缺角风格）
+            ctx.strokeStyle = themeColor
+            ctx.lineWidth = 1.5
+            ctx.beginPath()
+            // 上边线
+            ctx.moveTo(qrX + 8, bottomY + 4)
+            ctx.lineTo(qrX + qrSize - 4, bottomY + 4)
+            // 右边线
+            ctx.lineTo(qrX + qrSize - 4, bottomY + qrSize - 8)
+            // 下边线（只画一半）
+            ctx.lineTo(qrX + qrSize / 2 + 4, bottomY + qrSize - 4)
+            ctx.stroke()
 
-      // 左下角小足球图标
-      ctx.font = '24px sans-serif'
-      ctx.fillStyle = 'rgba(0,0,0,0.12)'
-      ctx.textAlign = 'center'
-      ctx.textBaseline = 'middle'
-      ctx.fillText('⚽', qrX + 20, bottomY + qrSize - 18)
+            // 左下角小足球图标
+            ctx.font = '24px sans-serif'
+            ctx.fillStyle = 'rgba(0,0,0,0.12)'
+            ctx.textAlign = 'center'
+            ctx.textBaseline = 'middle'
+            ctx.fillText('⚽', qrX + 20, bottomY + qrSize - 18)
 
-      // 右上角小标签
-      ctx.font = 'bold 9px sans-serif'
-      ctx.fillStyle = themeColor
-      ctx.textAlign = 'right'
-      ctx.textBaseline = 'bottom'
-      ctx.fillText('FBTI', qrX + qrSize - 6, bottomY + 16)
+            // 右上角小标签
+            ctx.font = 'bold 9px sans-serif'
+            ctx.fillStyle = themeColor
+            ctx.textAlign = 'right'
+            ctx.textBaseline = 'bottom'
+            ctx.fillText('FBTI', qrX + qrSize - 6, bottomY + 16)
 
-      // 中心文字
-      ctx.font = 'bold 11px sans-serif'
-      ctx.fillStyle = 'rgba(0,0,0,0.3)'
-      ctx.textAlign = 'center'
-      ctx.textBaseline = 'middle'
-      ctx.fillText('扫码测一测', qrX + qrSize / 2, bottomY + qrSize / 2)
+            // 中心文字
+            ctx.font = 'bold 11px sans-serif'
+            ctx.fillStyle = 'rgba(0,0,0,0.3)'
+            ctx.textAlign = 'center'
+            ctx.textBaseline = 'middle'
+            ctx.fillText('扫码测一测', qrX + qrSize / 2, bottomY + qrSize / 2)
 
-      // 尝试加载并绘制真实小程序码（如果有配置）
-      that._drawQRCodeImage(canvas, ctx, qrX + 5, bottomY + 5, qrSize - 10, function () {
-        // 导出为临时图片（在二维码图片加载完成后）
-        wx.canvasToTempFilePath({
-          canvas: canvas,
-          fileType: 'jpg',
-          quality: 0.92,
-          success: function (res) {
-            that.setData({ posterTempPath: res.tempFilePath })
-          },
-          fail: function (e) {
-            console.warn('[FBTI-Result] 海报导出失败:', e)
-          }
-        })
-      })
-    })
+            // 尝试加载并绘制真实小程序码（如果有配置）
+            that._drawQRCodeImage(canvas, ctx, qrX + 5, bottomY + 5, qrSize - 10, function () {
+              // 导出为临时图片（在二维码图片加载完成后）
+              wx.canvasToTempFilePath({
+                canvas: canvas,
+                fileType: 'jpg',
+                quality: 0.92,
+                success: function (res) {
+                  that.setData({ posterTempPath: res.tempFilePath })
+                },
+                fail: function (e) {
+                  console.warn('[FBTI-Result] 海报导出失败:', e)
+                }
+              })
+            })
+          })
     }, 150)
   },
 
@@ -523,148 +523,148 @@ Page({
     setTimeout(function () {
       var query = wx.createSelectorQuery().in(that)
       query.select('#radarCanvas')
-        .fields({ node: true, size: true })
-        .exec(function (res) {
-          if (!res[0] || !res[0].node) return
+          .fields({ node: true, size: true })
+          .exec(function (res) {
+            if (!res[0] || !res[0].node) return
 
-          var canvas = res[0].node
-          var ctx = canvas.getContext('2d')
-          canvas.width = res[0].width * dpr
-          canvas.height = res[0].height * dpr
-          ctx.scale(dpr, dpr)
+            var canvas = res[0].node
+            var ctx = canvas.getContext('2d')
+            canvas.width = res[0].width * dpr
+            canvas.height = res[0].height * dpr
+            ctx.scale(dpr, dpr)
 
-          var W = res[0].width
-          var H = res[0].height
-          var padLeft = 10
-          var padRight = 10
-          var barAreaW = W - padLeft - padRight
-          var rowH = 56
-          var startY = 36 // 标题区高度
+            var W = res[0].width
+            var H = res[0].height
+            var padLeft = 10
+            var padRight = 10
+            var barAreaW = W - padLeft - padRight
+            var rowH = 56
+            var startY = 36 // 标题区高度
 
-          // 提取数据
-          var items = []
-          for (var mi = 0; mi < modelGroups.length; mi++) {
-            var mg = modelGroups[mi]
-            var sum = 0
-            for (var di = 0; di < mg.dimensions.length; di++) {
-              sum += mg.dimensions[di].mapped
+            // 提取数据
+            var items = []
+            for (var mi = 0; mi < modelGroups.length; mi++) {
+              var mg = modelGroups[mi]
+              var sum = 0
+              for (var di = 0; di < mg.dimensions.length; di++) {
+                sum += mg.dimensions[di].mapped
+              }
+              var avg = sum / mg.dimensions.length // 1~3
+              var pct = Math.round((avg - 1) / 2 * 100) // 0~100%
+              var level = avg < 1.6 ? '低' : (avg < 2.4 ? '中' : '高')
+              var levelEn = avg < 1.6 ? 'LOW' : (avg < 2.4 ? 'MID' : 'HIGH')
+              items.push({
+                label: mg.label,
+                avg: avg,
+                pct: pct,
+                level: level,
+                levelEn: levelEn
+              })
             }
-            var avg = sum / mg.dimensions.length // 1~3
-            var pct = Math.round((avg - 1) / 2 * 100) // 0~100%
-            var level = avg < 1.6 ? '低' : (avg < 2.4 ? '中' : '高')
-            var levelEn = avg < 1.6 ? 'LOW' : (avg < 2.4 ? 'MID' : 'HIGH')
-            items.push({
-              label: mg.label,
-              avg: avg,
-              pct: pct,
-              level: level,
-              levelEn: levelEn
-            })
-          }
 
-          // ====== 深色半透明背景（适配深色主题） ======
-          ctx.fillStyle = 'rgba(0, 0, 0, 0.3)'
-          that._drawRoundRect(ctx, 0, 0, W, H, 16)
-          ctx.fill()
-
-          // 1) 小标题
-          ctx.font = 'bold 11px sans-serif'
-          ctx.textAlign = 'left'
-          ctx.fillStyle = 'rgba(255,255,255,0.5)'
-          ctx.fillText('● 人格维度分析', padLeft, 22)
-
-          // 2) 绘制每一行的指标条
-          for (var i = 0; i < items.length; i++) {
-            var item = items[i]
-            var y = startY + i * rowH
-            var cy = y + rowH / 2
-
-            // --- 左侧：维度名称 ---
-            ctx.font = 'bold 13px sans-serif'
-            ctx.textAlign = 'left'
-            ctx.textBaseline = 'middle'
-            ctx.fillStyle = 'rgba(255,255,255,0.92)'
-            ctx.fillText(item.label, padLeft, cy)
-
-            // --- 右侧：等级标签（小药丸） ---
-            var pillText = item.level
-            var pillW = 32
-            var pillH = 20
-            var pillX = W - padRight - pillW
-            var pillY = cy - pillH / 2
-
-            // 药丸背景色 — 与进度条明显区分
-            var pillColor
-            if (item.level === '高') pillColor = '#66BB6A'
-            else if (item.level === '中') pillColor = '#FFA726'
-            else pillColor = '#546E7A'
-
-            ctx.fillStyle = pillColor
-            ctx.beginPath()
-            ctx.moveTo(pillX + 4, pillY)
-            ctx.lineTo(pillX + pillW - 4, pillY)
-            ctx.quadraticCurveTo(pillX + pillW, pillY, pillX + pillW, pillY + 4)
-            ctx.lineTo(pillX + pillW, pillY + pillH - 4)
-            ctx.quadraticCurveTo(pillX + pillW, pillY + pillH, pillX + pillW - 4, pillY + pillH)
-            ctx.lineTo(pillX + 4, pillY + pillH)
-            ctx.quadraticCurveTo(pillX, pillY + pillH, pillX, pillY + pillH - 4)
-            ctx.lineTo(pillX, pillY + 4)
-            ctx.quadraticCurveTo(pillX, pillY, pillX + 4, pillY)
-            ctx.closePath()
+            // ====== 深色半透明背景（适配深色主题） ======
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.3)'
+            that._drawRoundRect(ctx, 0, 0, W, H, 16)
             ctx.fill()
 
+            // 1) 小标题
             ctx.font = 'bold 11px sans-serif'
-            ctx.textAlign = 'center'
-            ctx.textBaseline = 'middle'
-            ctx.fillStyle = '#fff'
-            ctx.fillText(pillText, pillX + pillW / 2, cy)
+            ctx.textAlign = 'left'
+            ctx.fillStyle = 'rgba(255,255,255,0.5)'
+            ctx.fillText('● 人格维度分析', padLeft, 22)
 
-            // --- 中间：进度条轨道 ---
-            var trackX = padLeft + 68
-            var trackW = barAreaW - 68 - pillW - 16
-            var trackH = 12
-            var trackY = cy - trackH / 2
+            // 2) 绘制每一行的指标条
+            for (var i = 0; i < items.length; i++) {
+              var item = items[i]
+              var y = startY + i * rowH
+              var cy = y + rowH / 2
 
-            // 轨道背景（亮一点，与填充形成对比）
-            ctx.fillStyle = 'rgba(255,255,255,0.14)'
-            that._drawRoundRect(ctx, trackX, trackY, trackW, trackH, 6)
-            ctx.fill()
+              // --- 左侧：维度名称 ---
+              ctx.font = 'bold 13px sans-serif'
+              ctx.textAlign = 'left'
+              ctx.textBaseline = 'middle'
+              ctx.fillStyle = 'rgba(255,255,255,0.92)'
+              ctx.fillText(item.label, padLeft, cy)
 
-            // 进度填充（最小显示15%，保证可见）
-            var fillPct = Math.max(15, item.pct)
-            var fillW = trackW * fillPct / 100
-            if (fillW > 0) {
-              // 渐变填充 — 亮色到半透明，确保可见
-              var grd = ctx.createLinearGradient(trackX, 0, trackX + fillW, 0)
-              // 提取主题色的亮版本
-              var brightColor = that._lightenColor(themeColor, 40)
-              grd.addColorStop(0, brightColor)
-              grd.addColorStop(1, that._alphaColor(themeColor, 0.75))
-              ctx.fillStyle = grd
+              // --- 右侧：等级标签（小药丸） ---
+              var pillText = item.level
+              var pillW = 32
+              var pillH = 20
+              var pillX = W - padRight - pillW
+              var pillY = cy - pillH / 2
 
+              // 药丸背景色 — 与进度条明显区分
+              var pillColor
+              if (item.level === '高') pillColor = '#66BB6A'
+              else if (item.level === '中') pillColor = '#FFA726'
+              else pillColor = '#546E7A'
+
+              ctx.fillStyle = pillColor
               ctx.beginPath()
-              var fw = Math.max(fillW, 12)
-              that._drawRoundRect(ctx, trackX, trackY, fw, trackH, 6)
+              ctx.moveTo(pillX + 4, pillY)
+              ctx.lineTo(pillX + pillW - 4, pillY)
+              ctx.quadraticCurveTo(pillX + pillW, pillY, pillX + pillW, pillY + 4)
+              ctx.lineTo(pillX + pillW, pillY + pillH - 4)
+              ctx.quadraticCurveTo(pillX + pillW, pillY + pillH, pillX + pillW - 4, pillY + pillH)
+              ctx.lineTo(pillX + 4, pillY + pillH)
+              ctx.quadraticCurveTo(pillX, pillY + pillH, pillX, pillY + pillH - 4)
+              ctx.lineTo(pillX, pillY + 4)
+              ctx.quadraticCurveTo(pillX, pillY, pillX + 4, pillY)
+              ctx.closePath()
               ctx.fill()
 
-              // 顶部高光（增加立体感）
-              ctx.fillStyle = 'rgba(255,255,255,0.2)'
-              ctx.beginPath()
-              that._drawRoundRect(ctx, trackX + 1, trackY + 1, Math.max(fw - 2, 6), trackH / 2 - 1, 3)
-              ctx.fill()
-            }
-
-            // 百分比数字（在进度条右侧或内部）
-            if (fillW > 35) {
-              // 数字在条内部右侧
-              ctx.font = 'bold 10px sans-serif'
-              ctx.textAlign = 'right'
+              ctx.font = 'bold 11px sans-serif'
+              ctx.textAlign = 'center'
               ctx.textBaseline = 'middle'
               ctx.fillStyle = '#fff'
-              ctx.fillText(item.pct + '%', trackX + fillW - 6, cy)
+              ctx.fillText(pillText, pillX + pillW / 2, cy)
+
+              // --- 中间：进度条轨道 ---
+              var trackX = padLeft + 68
+              var trackW = barAreaW - 68 - pillW - 16
+              var trackH = 12
+              var trackY = cy - trackH / 2
+
+              // 轨道背景（亮一点，与填充形成对比）
+              ctx.fillStyle = 'rgba(255,255,255,0.14)'
+              that._drawRoundRect(ctx, trackX, trackY, trackW, trackH, 6)
+              ctx.fill()
+
+              // 进度填充（最小显示15%，保证可见）
+              var fillPct = Math.max(15, item.pct)
+              var fillW = trackW * fillPct / 100
+              if (fillW > 0) {
+                // 渐变填充 — 亮色到半透明，确保可见
+                var grd = ctx.createLinearGradient(trackX, 0, trackX + fillW, 0)
+                // 提取主题色的亮版本
+                var brightColor = that._lightenColor(themeColor, 40)
+                grd.addColorStop(0, brightColor)
+                grd.addColorStop(1, that._alphaColor(themeColor, 0.75))
+                ctx.fillStyle = grd
+
+                ctx.beginPath()
+                var fw = Math.max(fillW, 12)
+                that._drawRoundRect(ctx, trackX, trackY, fw, trackH, 6)
+                ctx.fill()
+
+                // 顶部高光（增加立体感）
+                ctx.fillStyle = 'rgba(255,255,255,0.2)'
+                ctx.beginPath()
+                that._drawRoundRect(ctx, trackX + 1, trackY + 1, Math.max(fw - 2, 6), trackH / 2 - 1, 3)
+                ctx.fill()
+              }
+
+              // 百分比数字（在进度条右侧或内部）
+              if (fillW > 35) {
+                // 数字在条内部右侧
+                ctx.font = 'bold 10px sans-serif'
+                ctx.textAlign = 'right'
+                ctx.textBaseline = 'middle'
+                ctx.fillStyle = '#fff'
+                ctx.fillText(item.pct + '%', trackX + fillW - 6, cy)
+              }
             }
-          }
-        })
+          })
     }, 100)
   },
 

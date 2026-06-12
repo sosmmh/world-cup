@@ -19,7 +19,7 @@
         <text class="mbti-icon">🎯</text>
         <view class="mbti-text">
           <text class="mbti-title">测测你是哪种球迷?</text>
-          <text class="mbti-desc">15道趣味题, 发现你的球迷人格</text>
+          <text class="mbti-desc">发现你的球迷人格</text>
         </view>
         <text class="mbti-arrow">→</text>
       </view>
