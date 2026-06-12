@@ -1,11 +1,11 @@
-// utils/fbtiEngine.js - FBTI 2.0 计分引擎 (V3)
+// utils/fbtiEngine.js - FBTI 2.0 计分引擎 (V4)
 // Football Behavior Type Indicator — 五模型十五维度向量匹配系统
 //
 // 算法流程：
-//   从32题题库中随机抽取15题作答(每题1~3分)
-//     → 15维度原始分聚合 (每维度1~2题，范围1~6分)
-//     → L/M/H 三级映射 (1~2→L/1, 3~4→M/2, 5~6→H/3)
-//     → 隐藏彩蛋检测 (H1=C且H2=C → DRUNK)
+//   从32题题库中随机抽取23题作答(每题1~3分)
+//     → 15维度原始分聚合 (每维度1~2题，范围1~6)
+//     → 自适应 L/M/H 三级映射 (根据每维度实际抽到的题目数动态调整阈值)
+//     → 隐藏彩蛋检测 (H1且H2均选value=3 → DRUNK)
 //     → 与27个人格模板计算曼哈顿距离
 //     → 最近邻匹配 + 相似度百分比
 //     → <60% → HHHH兜底
@@ -16,7 +16,7 @@ const { profiles: allProfiles } = require('../data/fbtiProfiles')
 // ==================== 常量配置 ====================
 
 // 每次测试的题目数量（从题库中随机抽取）
-const QUESTION_COUNT = 15
+const QUESTION_COUNT = 23
 
 // 最少包含的隐藏题数量（H1/H2 用于触发 DRUNK 彩蛋）
 const MIN_HIDDEN_COUNT = 2
@@ -45,12 +45,28 @@ const DIM_LABELS = {
   M1: '投入意愿', M2: '消费方向', M3: '价值判断'
 }
 
-// L/M/H 映射阈值：原始分(1~6) → 映射值(L=1/M=2/H=3)
-// 注意：由于每次只抽15题（约一半），某些维度可能只有1道题
-function mapRawToLMH(rawScore) {
-  if (rawScore <= 2) return 1   // L - 低
-  if (rawScore <= 4) return 2   // M - 中
-  return 3                       // H - 高
+// L/M/H 自适应映射：根据该维度抽到的题目数动态调整阈值
+//
+// 设计说明（V4 - 23题版）：
+//   每个维度有2道题库，但23题时只能覆盖部分维度出2题
+//   23题 = 21常规 + 2隐藏，15维度中约6个维度出2题、9个维度出1题
+//
+//   1题维度（原始分范围1~3）：
+//     1→L, 2→M, 3→H  （直接对应，无压缩）
+//
+//   2题维度（原始分范围2~6）：
+//     2→L(必须双A), 3~4→M, 5~6→H  （收紧L门槛，扩大M区间）
+function mapRawToLMH(rawScore, questionCount) {
+  if (questionCount === 1) {
+    // 单题维度：直接映射 1→L / 2→M / 3→H
+    if (rawScore <= 1) return 1
+    if (rawScore <= 2) return 2
+    return 3
+  }
+  // 双题维度：范围2~6
+  if (rawScore <= 2) return 1   // L - 必须两道都选A
+  if (rawScore <= 4) return 2   // M - 大多数人的自然分布区间
+  return 3                       // H - 需要至少一道选C+另一道不选A
 }
 
 // 相似度计算：曼哈顿距离 → 百分比
@@ -71,6 +87,7 @@ const fbtiEngine = {
    * 抽取策略：
    *   - 2道隐藏题(H1/H2) 必须包含（用于 DRUNK 彩蛋检测）
    *   - 其余从30道常规题中随机抽取，确保每个维度至少覆盖1道
+   *   - 23题时：15维度全覆盖(各1题=15题) + 额外6题随机补充
    * @returns {Array} 随机抽取的题目数组
    */
   getQuestions() {
@@ -105,7 +122,7 @@ const fbtiEngine = {
     var dimKeys = Object.keys(dimGroups)
     var dimsCount = dimKeys.length
     
-    // 先每个维度抽1道
+    // 先每个维度抽1道（保证15维度全覆盖）
     for (var d = 0; d < dimKeys.length; d++) {
       var group = dimGroups[dimKeys[d]]
       var randomIdx = Math.floor(Math.random() * group.length)
@@ -114,7 +131,7 @@ const fbtiEngine = {
       group.splice(randomIdx, 1)
     }
 
-    // 剩余名额从剩余题目中随机抽取
+    // 剩余名额从剩余题目中随机抽取（补充到目标数量）
     var remaining = normalCount - selectedNormals.length
     if (remaining > 0) {
       // 收集所有未选的常规题
@@ -175,9 +192,13 @@ const fbtiEngine = {
    * @returns {Object} 完整结果对象
    */
   calculateResult(answers) {
-    // ===== Step 1: 计算15维度原始分 =====
+    // ===== Step 1: 计算15维度原始分 + 统计每维度题目数 =====
     const rawScores = {}
-    DIMENSIONS.forEach(d => { rawScores[d] = 0 })
+    const dimQuestionCounts = {}
+    DIMENSIONS.forEach(d => { 
+      rawScores[d] = 0
+      dimQuestionCounts[d] = 0 
+    })
 
     let drunkTrigger = { H1: false, H2: false }
 
@@ -199,11 +220,12 @@ const fbtiEngine = {
       const dim = q.dimension
       if (dim && rawScores[dim] !== undefined) {
         rawScores[dim] += option.value
+        dimQuestionCounts[dim]++
       }
     }
 
-    // ===== Step 2: 映射为 L/M/H 向量 =====
-    const userVector = DIMENSIONS.map(d => mapRawToLMH(rawScores[d]))
+    // ===== Step 2: 自适应 L/M/H 映射 =====
+    const userVector = DIMENSIONS.map(d => mapRawToLMH(rawScores[d], dimQuestionCounts[d]))
 
     // ===== Step 3: DRUNK 彩蛋检测 =====
     if (drunkTrigger.H1 && drunkTrigger.H2) {
@@ -257,7 +279,7 @@ const fbtiEngine = {
       label: DIM_LABELS[d],
       model: d[0],              // W/E/K/S/M
       modelLabel: MODEL_LABELS[d[0]],
-      raw: rawScores[d] || 0,   // 原始分 2~6
+      raw: rawScores[d] || 0,   // 原始分
       mapped: userVector[idx],  // L=1/M=2/H=3
       levelLabel: ['L', 'M', 'H'][userVector[idx] - 1],
       levelText: ['低', '中', '高'][userVector[idx] - 1],

@@ -66,10 +66,29 @@
   <!-- 操作按钮 -->
   <view class="action-buttons">
     <button class="btn-share" bindtap="onShare" open-type="share">分享好友 📤</button>
-    <button class="btn-copy" bindtap="onCopyQuote">复制金句 📋</button>
+    <button class="btn-poster" bindtap="onGeneratePoster">生成海报 🎨</button>
   </view>
+  <button class="btn-copy" bindtap="onCopyQuote">复制金句 📋</button>
 
   <button class="btn-retest" bindtap="onRetest">再测一次 🔄</button>
 
   <view class="safe-bottom"></view>
+</view>
+
+<!-- 海报弹窗（离屏Canvas绘制） -->
+<view class="poster-mask" wx:if="{{showPoster}}" bindtap="onClosePoster">
+  <view class="poster-dialog" catchtap="">
+    <text class="poster-dialog-title">长按保存海报，分享给好友</text>
+    <view class="poster-canvas-wrap">
+      <canvas
+        type="2d"
+        id="posterCanvas"
+        style="width: {{posterWidth}}px; height: {{posterHeight}}px;"
+      ></canvas>
+    </view>
+    <view class="poster-actions">
+      <button class="btn-poster-save" bindtap="onSavePoster">保存到相册 💾</button>
+      <button class="btn-poster-close" bindtap="onClosePoster">关闭 ✕</button>
+    </view>
+  </view>
 </view>

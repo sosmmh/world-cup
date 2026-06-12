@@ -68,5 +68,8 @@ module.exports = {
     fbtiQuestionCount: 32,        // FBTI 2.0 固定32题（30常规+2隐藏）
     maxFavoriteCount: 50,
     testHistoryMaxCount: 20
-  }
+  },
+
+  // ========== 分享海报配置 ==========
+  posterQrCodePath: '/images/img.png'   // 分享海报底部小程序码图片（本地/云存储/网络URL均可）
 }
